@@ -34,11 +34,17 @@ class ContentItem extends Model
 
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
-        return $query->when(filled($term), fn (Builder $q) => $q->where(
-            fn (Builder $inner) => $inner->where('title', 'like', "%{$term}%")
-                ->orWhere('excerpt', 'like', "%{$term}%")
-                ->orWhere('body', 'like', "%{$term}%")
-        ));
+        $words = collect(preg_split('/\s+/u', trim((string) $term), -1, PREG_SPLIT_NO_EMPTY))
+            ->map(fn (string $word) => preg_replace('/[+\-<>()~*"@]+/u', '', $word))
+            ->filter(fn (string $word) => $word !== '');
+
+        if ($words->isEmpty()) {
+            return $query;
+        }
+
+        $boolean = $words->map(fn (string $word) => "+{$word}*")->implode(' ');
+
+        return $query->whereRaw('MATCH(title, excerpt, body) AGAINST (? IN BOOLEAN MODE)', [$boolean]);
     }
 
     public function categories()
@@ -54,6 +60,11 @@ class ContentItem extends Model
     public function media()
     {
         return $this->belongsToMany(Media::class, 'content_media')->withPivot('collection', 'alt_text', 'sort_order')->withTimestamps();
+    }
+
+    public function book()
+    {
+        return $this->hasOne(Book::class, 'content_item_id');
     }
 
     public function coverImage(): ?Media

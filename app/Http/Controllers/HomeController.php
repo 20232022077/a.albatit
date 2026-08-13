@@ -25,7 +25,8 @@ class HomeController extends Controller
     public function search(Request $request): View
     {
         $query = trim((string) $request->input('q'));
-        $items = ContentItem::published()->when($query !== '', fn ($builder) => $builder->where(fn ($search) => $search->where('title', 'like', "%{$query}%")->orWhere('excerpt', 'like', "%{$query}%")->orWhere('body', 'like', "%{$query}%")))->latest('published_at')->paginate(12)->withQueryString();
+        $items = ContentItem::published()->search($query ?: null)->latest('published_at')->paginate(12)->withQueryString();
+
         return view('search', compact('query', 'items'));
     }
 }

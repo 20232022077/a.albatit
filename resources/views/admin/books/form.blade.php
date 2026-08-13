@@ -1,0 +1,143 @@
+@extends('layouts.admin')
+
+@php
+    $seo = $item->meta['seo'] ?? [];
+    $selectedCategoryIds = old('category_ids', $item->relationLoaded('categories') ? $item->categories->pluck('id')->all() : []);
+@endphp
+
+@section('admin-content')
+<main class="mx-auto max-w-4xl px-6 py-10">
+    <h1 class="text-2xl font-bold">{{ $item->exists ? 'تعديل كتاب' : 'كتاب جديد' }}</h1>
+
+    <form method="POST" action="{{ $item->exists ? route('admin.books.update', $item) : route('admin.books.store') }}" enctype="multipart/form-data" class="mt-6 space-y-6 rounded-xl border border-slate-200 bg-white p-6">
+        @csrf
+        @if($item->exists) @method('PUT') @endif
+
+        <div>
+            <label class="text-sm font-medium">العنوان</label>
+            <input name="title" value="{{ old('title', $item->title) }}" required class="mt-1 w-full rounded border-slate-300">
+            @error('title')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+        </div>
+
+        <div>
+            <label class="text-sm font-medium">الرابط المختصر (Slug)</label>
+            <input name="slug" dir="ltr" value="{{ old('slug', $item->slug) }}" placeholder="يُولَّد تلقائيًا من العنوان إذا تُرك فارغًا" class="mt-1 w-full rounded border-slate-300">
+            @error('slug')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+                <label class="text-sm font-medium">المؤلف</label>
+                <input name="author_name" value="{{ old('author_name', $book->author_name) }}" required class="mt-1 w-full rounded border-slate-300">
+                @error('author_name')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="text-sm font-medium">الحالة</label>
+                <select name="status" class="mt-1 w-full rounded border-slate-300">
+                    <option value="draft" @selected(old('status', $item->status) === 'draft')>مسودة</option>
+                    <option value="published" @selected(old('status', $item->status) === 'published')>منشور</option>
+                </select>
+                @error('status')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <div>
+            <label class="text-sm font-medium">وصف مختصر</label>
+            <textarea name="excerpt" rows="2" class="mt-1 w-full rounded border-slate-300">{{ old('excerpt', $item->excerpt) }}</textarea>
+            @error('excerpt')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+        </div>
+
+        <div>
+            <label class="text-sm font-medium">وصف تفصيلي</label>
+            <textarea name="body" rows="6" class="mt-1 w-full rounded border-slate-300">{{ old('body', $item->body) }}</textarea>
+            @error('body')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-3">
+            <div>
+                <label class="text-sm font-medium">دار النشر</label>
+                <input name="publisher" value="{{ old('publisher', $book->publisher) }}" class="mt-1 w-full rounded border-slate-300">
+                @error('publisher')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="text-sm font-medium">سنة النشر</label>
+                <input type="number" name="publication_year" value="{{ old('publication_year', $book->publication_year) }}" class="mt-1 w-full rounded border-slate-300">
+                @error('publication_year')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="text-sm font-medium">عدد الصفحات</label>
+                <input type="number" name="pages_count" value="{{ old('pages_count', $book->pages_count) }}" class="mt-1 w-full rounded border-slate-300">
+                @error('pages_count')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <div>
+            <label class="text-sm font-medium">ISBN</label>
+            <input name="isbn" dir="ltr" value="{{ old('isbn', $book->isbn) }}" class="mt-1 w-full rounded border-slate-300">
+            @error('isbn')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+                <label class="text-sm font-medium">صورة الغلاف</label>
+                @if($item->exists && $book->cover)<img src="{{ $book->cover->url() }}" alt="" class="mt-2 h-24 w-24 rounded-lg object-cover">@endif
+                <input type="file" name="cover_image" accept="image/*" class="mt-2 w-full text-sm">
+                @error('cover_image')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="text-sm font-medium">ملف PDF</label>
+                @if($item->exists && $book->pdf)<a href="{{ $book->pdf->url() }}" target="_blank" class="mt-2 block text-sm text-emerald-700">{{ $book->pdf->original_name }}</a>@endif
+                <input type="file" name="pdf_file" accept="application/pdf" class="mt-2 w-full text-sm">
+                @error('pdf_file')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-3">
+            <div>
+                <label class="text-sm font-medium">ترتيب العرض</label>
+                <input type="number" name="sort_order" min="0" value="{{ old('sort_order', $item->sort_order ?? 0) }}" class="mt-1 w-full rounded border-slate-300">
+                @error('sort_order')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="text-sm font-medium">تاريخ النشر</label>
+                <input type="datetime-local" name="published_at" value="{{ old('published_at', $item->published_at?->format('Y-m-d\TH:i')) }}" class="mt-1 w-full rounded border-slate-300">
+                @error('published_at')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            </div>
+            <div class="flex items-end pb-2">
+                <label class="flex items-center gap-2"><input type="hidden" name="is_featured" value="0"><input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $item->is_featured))> كتاب مميز</label>
+            </div>
+        </div>
+
+        <fieldset>
+            <legend class="text-sm font-medium">التصنيفات</legend>
+            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                @forelse($categories as $category)
+                    <label class="flex gap-2 rounded border border-slate-200 p-2"><input type="checkbox" name="category_ids[]" value="{{ $category->id }}" @checked(in_array($category->id, $selectedCategoryIds))> {{ $category->name }}</label>
+                @empty
+                    <p class="text-sm text-slate-400">لا توجد تصنيفات بعد.</p>
+                @endforelse
+            </div>
+        </fieldset>
+
+        <div>
+            <label class="text-sm font-medium">الوسوم (مفصولة بفواصل)</label>
+            <input name="tags" value="{{ old('tags', $item->relationLoaded('tags') ? $item->tags->pluck('name')->join(', ') : '') }}" class="mt-1 w-full rounded border-slate-300">
+            @error('tags')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+        </div>
+
+        <fieldset class="rounded-lg border border-slate-200 p-4">
+            <legend class="px-1 text-sm font-medium">تحسين محركات البحث (SEO)</legend>
+            <div class="space-y-4">
+                <div><label class="text-sm">عنوان SEO</label><input name="seo_title" value="{{ old('seo_title', $seo['title'] ?? '') }}" class="mt-1 w-full rounded border-slate-300"></div>
+                <div><label class="text-sm">وصف SEO</label><textarea name="seo_description" rows="2" class="mt-1 w-full rounded border-slate-300">{{ old('seo_description', $seo['description'] ?? '') }}</textarea></div>
+                <div><label class="text-sm">كلمات مفتاحية</label><input name="seo_keywords" dir="ltr" value="{{ old('seo_keywords', $seo['keywords'] ?? '') }}" class="mt-1 w-full rounded border-slate-300"></div>
+            </div>
+        </fieldset>
+
+        <div class="flex gap-3">
+            <button class="rounded bg-emerald-700 px-5 py-2 text-white">حفظ</button>
+            <a href="{{ route('admin.books.index') }}" class="px-4 py-2">إلغاء</a>
+        </div>
+    </form>
+</main>
+@endsection

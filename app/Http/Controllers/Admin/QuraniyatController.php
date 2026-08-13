@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Concerns\ManagesContentItems;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StoreQuranCentralityItemRequest;
-use App\Http\Requests\Admin\UpdateQuranCentralityItemRequest;
+use App\Http\Requests\Admin\StoreQuraniyatItemRequest;
+use App\Http\Requests\Admin\UpdateQuraniyatItemRequest;
 use App\Models\Category;
 use App\Models\ContentItem;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,13 +16,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
-class QuranCentralityController extends Controller
+class QuraniyatController extends Controller
 {
     use ManagesContentItems;
 
-    private const SECTION_CATEGORY_SLUG = 'quran-centrality';
+    private const SECTION_CATEGORY_SLUG = 'quraniyat';
 
-    private const TYPES = ['article', 'study', 'video', 'pdf', 'image'];
+    private const TYPES = ['article', 'khatira', 'fawaid', 'video', 'pdf'];
 
     private const SORTABLE = ['sort_order', 'title', 'created_at', 'published_at'];
 
@@ -49,7 +49,7 @@ class QuranCentralityController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.quran-centrality.index', [
+        return view('admin.quraniyat.index', [
             'items' => $items,
             'categories' => $this->categoryOptions(),
             'types' => self::TYPES,
@@ -62,14 +62,14 @@ class QuranCentralityController extends Controller
     {
         $this->authorize('permission', 'content.create');
 
-        return view('admin.quran-centrality.form', [
+        return view('admin.quraniyat.form', [
             'item' => new ContentItem(['type' => 'article', 'status' => 'draft', 'sort_order' => 0]),
             'categories' => $this->categoryOptions(),
             'types' => self::TYPES,
         ]);
     }
 
-    public function store(StoreQuranCentralityItemRequest $request): RedirectResponse
+    public function store(StoreQuraniyatItemRequest $request): RedirectResponse
     {
         $data = $request->validated();
 
@@ -96,9 +96,9 @@ class QuranCentralityController extends Controller
             return $item;
         });
 
-        $this->recordActivity('quran_centrality.created', $item);
+        $this->recordActivity('quraniyat.created', $item);
 
-        return redirect()->route('admin.quran-centrality.index')->with('status', 'تم إنشاء المحتوى.');
+        return redirect()->route('admin.quraniyat.index')->with('status', 'تم إنشاء المحتوى.');
     }
 
     public function edit(ContentItem $item): View
@@ -106,14 +106,14 @@ class QuranCentralityController extends Controller
         $this->authorizeItem('update', $item);
         $item->load(['categories', 'tags', 'media']);
 
-        return view('admin.quran-centrality.form', [
+        return view('admin.quraniyat.form', [
             'item' => $item,
             'categories' => $this->categoryOptions(),
             'types' => self::TYPES,
         ]);
     }
 
-    public function update(UpdateQuranCentralityItemRequest $request, ContentItem $item): RedirectResponse
+    public function update(UpdateQuraniyatItemRequest $request, ContentItem $item): RedirectResponse
     {
         $this->authorizeItem('update', $item);
         $data = $request->validated();
@@ -138,18 +138,18 @@ class QuranCentralityController extends Controller
             $this->replaceMedia($item, $request->file('attachment'), 'attachment', $request->user()->id);
         });
 
-        $this->recordActivity('quran_centrality.updated', $item);
+        $this->recordActivity('quraniyat.updated', $item);
 
-        return redirect()->route('admin.quran-centrality.index')->with('status', 'تم تحديث المحتوى.');
+        return redirect()->route('admin.quraniyat.index')->with('status', 'تم تحديث المحتوى.');
     }
 
     public function destroy(ContentItem $item): RedirectResponse
     {
         $this->authorizeItem('delete', $item);
         $item->delete();
-        $this->recordActivity('quran_centrality.deleted', $item);
+        $this->recordActivity('quraniyat.deleted', $item);
 
-        return redirect()->route('admin.quran-centrality.index')->with('status', 'تم نقل المحتوى إلى المحذوفات.');
+        return redirect()->route('admin.quraniyat.index')->with('status', 'تم نقل المحتوى إلى المحذوفات.');
     }
 
     public function restore(int $id): RedirectResponse
@@ -159,16 +159,16 @@ class QuranCentralityController extends Controller
         abort_unless($item->categories()->where('slug', self::SECTION_CATEGORY_SLUG)->exists(), 404);
 
         $item->restore();
-        $this->recordActivity('quran_centrality.restored', $item);
+        $this->recordActivity('quraniyat.restored', $item);
 
-        return redirect()->route('admin.quran-centrality.index', ['trashed' => 1])->with('status', 'تمت استعادة المحتوى.');
+        return redirect()->route('admin.quraniyat.index', ['trashed' => 1])->with('status', 'تمت استعادة المحتوى.');
     }
 
     public function publish(ContentItem $item): RedirectResponse
     {
         $this->authorizeItem('update', $item);
         $item->update(['status' => 'published', 'published_at' => $item->published_at ?? now()]);
-        $this->recordActivity('quran_centrality.published', $item);
+        $this->recordActivity('quraniyat.published', $item);
 
         return back()->with('status', 'تم نشر المحتوى.');
     }
@@ -177,7 +177,7 @@ class QuranCentralityController extends Controller
     {
         $this->authorizeItem('update', $item);
         $item->update(['status' => 'draft']);
-        $this->recordActivity('quran_centrality.unpublished', $item);
+        $this->recordActivity('quraniyat.unpublished', $item);
 
         return back()->with('status', 'تم إلغاء نشر المحتوى.');
     }
@@ -226,7 +226,7 @@ class QuranCentralityController extends Controller
             }
         }
 
-        $media = $this->createMedia($file, 'quran-centrality', $userId);
+        $media = $this->createMedia($file, 'quraniyat', $userId);
         $item->media()->attach($media->id, ['collection' => $collection, 'sort_order' => 0]);
     }
 }
