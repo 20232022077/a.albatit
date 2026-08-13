@@ -66,7 +66,7 @@
             </div>
             <div>
                 <label class="text-sm font-medium">ملف PDF (لنوع "ملف PDF")</label>
-                @if($attachment = $item->attachment())<a href="{{ $attachment->url() }}" target="_blank" class="mt-2 block text-sm text-emerald-700">{{ $attachment->original_name }}</a>@endif
+                @if($attachment = $item->attachment())<a href="{{ $attachment->pdfUrl() }}" target="_blank" class="mt-2 block text-sm text-emerald-700">{{ $attachment->original_name }}</a>@endif
                 <input type="file" name="attachment" accept=".pdf" class="mt-2 w-full text-sm">
                 @error('attachment')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
             </div>

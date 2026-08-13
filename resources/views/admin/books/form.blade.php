@@ -86,7 +86,7 @@
             </div>
             <div>
                 <label class="text-sm font-medium">ملف PDF</label>
-                @if($item->exists && $book->pdf)<a href="{{ $book->pdf->url() }}" target="_blank" class="mt-2 block text-sm text-emerald-700">{{ $book->pdf->original_name }}</a>@endif
+                @if($item->exists && $book->pdf)<a href="{{ $book->pdf->pdfUrl() }}" target="_blank" class="mt-2 block text-sm text-emerald-700">{{ $book->pdf->original_name }}</a>@endif
                 <input type="file" name="pdf_file" accept="application/pdf" class="mt-2 w-full text-sm">
                 @error('pdf_file')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
             </div>

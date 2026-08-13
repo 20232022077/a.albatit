@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\BookController as AdminBookController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LectureController as AdminLectureController;
+use App\Http\Controllers\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Admin\ProgramController as AdminProgramController;
 use App\Http\Controllers\Admin\ProgramEpisodeController;
 use App\Http\Controllers\Admin\QuranCentralityController as AdminQuranCentralityController;
@@ -12,12 +13,15 @@ use App\Http\Controllers\Admin\QuraniyatController as AdminQuraniyatController;
 use App\Http\Controllers\Admin\ReflectionController as AdminReflectionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\StaticAdminPageController;
+use App\Http\Controllers\Admin\TagController as AdminTagController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WallPostController as AdminWallPostController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\BiographyController as PublicBiographyController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LectureController;
+use App\Http\Controllers\PdfController;
 use App\Http\Controllers\QuranCentralityController;
 use App\Http\Controllers\QuraniyatController;
 use App\Http\Controllers\ReflectionController;
@@ -28,6 +32,7 @@ Route::get('/', function () {
     return app(HomeController::class)->index();
 })->name('home');
 Route::get('/search', [HomeController::class, 'search'])->name('search');
+Route::get('/biography', [PublicBiographyController::class, 'show'])->name('biography.show');
 Route::get('/quran-centrality', [QuranCentralityController::class, 'index'])->name('quran-centrality.index');
 Route::get('/quran-centrality/{item:slug}', [QuranCentralityController::class, 'show'])->name('quran-centrality.show');
 Route::get('/books', [BookController::class, 'index'])->name('books.index');
@@ -39,6 +44,7 @@ Route::get('/lectures/{item:slug}', [LectureController::class, 'show'])->name('l
 Route::get('/reflections', [ReflectionController::class, 'index'])->name('reflections.index');
 Route::get('/reflections/{item:slug}', [ReflectionController::class, 'show'])->name('reflections.show');
 Route::get('/wall', [WallController::class, 'index'])->name('wall.index');
+Route::get('/pdf/{media}', [PdfController::class, 'show'])->name('pdf.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -152,6 +158,25 @@ Route::middleware('auth')->group(function () {
             Route::post('/{category}/activate', [AdminCategoryController::class, 'activate'])->name('activate');
             Route::post('/{category}/deactivate', [AdminCategoryController::class, 'deactivate'])->name('deactivate');
         });
-        Route::get('{section}', StaticAdminPageController::class)->whereIn('section', ['content', 'media', 'tags', 'settings', 'activity-logs', 'backups'])->name('section');
+        Route::prefix('tags')->as('tags.')->group(function () {
+            Route::get('/', [AdminTagController::class, 'index'])->name('index');
+            Route::get('/create', [AdminTagController::class, 'create'])->name('create');
+            Route::post('/', [AdminTagController::class, 'store'])->name('store');
+            Route::get('/{tag}/edit', [AdminTagController::class, 'edit'])->name('edit');
+            Route::put('/{tag}', [AdminTagController::class, 'update'])->name('update');
+            Route::delete('/{tag}', [AdminTagController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/restore', [AdminTagController::class, 'restore'])->name('restore');
+            Route::post('/{tag}/activate', [AdminTagController::class, 'activate'])->name('activate');
+            Route::post('/{tag}/deactivate', [AdminTagController::class, 'deactivate'])->name('deactivate');
+        });
+        Route::prefix('media')->as('media.')->group(function () {
+            Route::get('/', [AdminMediaController::class, 'index'])->name('index');
+            Route::post('/', [AdminMediaController::class, 'store'])->name('store');
+            Route::put('/{media}', [AdminMediaController::class, 'update'])->name('update');
+            Route::delete('/{media}', [AdminMediaController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/restore', [AdminMediaController::class, 'restore'])->name('restore');
+            Route::delete('/{id}/force', [AdminMediaController::class, 'forceDestroy'])->name('force-destroy');
+        });
+        Route::get('{section}', StaticAdminPageController::class)->whereIn('section', ['content', 'settings', 'activity-logs', 'backups'])->name('section');
     });
 });

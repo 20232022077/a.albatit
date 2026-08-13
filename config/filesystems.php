@@ -33,7 +33,11 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Private, non-web-accessible storage (e.g. PDF documents). Laravel's
+            // built-in auto-serve route for local disks is disabled here on purpose:
+            // files on this disk are only ever served through our own controlled,
+            // MIME-checked streaming routes (see PdfController), never directly.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

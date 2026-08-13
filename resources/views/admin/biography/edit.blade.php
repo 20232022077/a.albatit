@@ -1,5 +1,119 @@
 @extends('layouts.admin')
+
+@php
+    $typeLabels = ['qualification' => 'مؤهل علمي', 'work' => 'خبرة مهنية', 'development' => 'نشاط علمي وتطويري', 'teaching' => 'نشاط تعليمي حالي', 'achievement' => 'إنجاز'];
+@endphp
+
 @section('admin-content')
-<main class="mx-auto max-w-4xl"><h1 class="text-2xl font-bold">السيرة الذاتية</h1>@if(session('status'))<p class="mt-4 rounded bg-emerald-50 p-3 text-emerald-800">{{session('status')}}</p>@endif
-<form method="POST" action="{{route('admin.biography.update')}}" class="mt-6 space-y-5 rounded-xl bg-white p-6 shadow-sm">@csrf @method('PUT')<input type="hidden" name="is_visible" value="0"><label class="flex gap-2"><input type="checkbox" name="is_visible" value="1" @checked($biography?->contentItem?->status==='published')> إظهار القسم</label><div><label>الاسم</label><input name="name" required value="{{old('name',$biography?->contentItem?->title)}}" class="mt-1 w-full rounded border-slate-300"></div><div><label>النبذة</label><textarea name="excerpt" class="mt-1 w-full rounded border-slate-300">{{old('excerpt',$biography?->contentItem?->excerpt)}}</textarea></div><div><label>النص التفصيلي</label><textarea name="body" rows="6" class="mt-1 w-full rounded border-slate-300">{{old('body',$biography?->contentItem?->body)}}</textarea></div><div><label>روابط التواصل (JSON)</label><textarea name="social_links" class="mt-1 w-full rounded border-slate-300">{{ json_encode($biography?->contentItem?->meta['social_links']??[]) }}</textarea></div><h2 class="pt-4 text-lg font-bold">العناصر المرتبة</h2>@foreach($biography?->sections??[] as $i=>$section)<div class="grid gap-3 rounded border p-4 sm:grid-cols-2"><input type="hidden" name="sections[{{$i}}][id]" value="{{$section->id}}"><select name="sections[{{$i}}][type]" class="rounded border-slate-300"><option value="qualification" @selected($section->type==='qualification')>مؤهل علمي</option><option value="work" @selected($section->type==='work')>عمل</option><option value="participation" @selected($section->type==='participation')>مشاركة</option><option value="achievement" @selected($section->type==='achievement')>إنجاز</option></select><input name="sections[{{$i}}][title]" value="{{$section->title}}" class="rounded border-slate-300"><textarea name="sections[{{$i}}][body]" class="sm:col-span-2 rounded border-slate-300">{{$section->body}}</textarea><input type="number" name="sections[{{$i}}][sort_order]" value="{{$section->sort_order}}" class="rounded border-slate-300"><input type="hidden" name="sections[{{$i}}][is_visible]" value="1"></div>@endforeach<p class="text-sm text-slate-500">يمكن إضافة عناصر جديدة من الواجهة في المرحلة التالية؛ العناصر الحالية قابلة للتحرير والترتيب والظهور.</p><button class="rounded bg-emerald-700 px-5 py-2 text-white">حفظ</button></form></main>
+<main class="mx-auto max-w-4xl px-6 py-10">
+    <h1 class="text-2xl font-bold">السيرة الذاتية</h1>
+    @if(session('status'))<p class="mt-4 rounded-lg bg-emerald-50 p-3 text-emerald-800">{{ session('status') }}</p>@endif
+
+    <form method="POST" action="{{ route('admin.biography.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6 rounded-xl border border-slate-200 bg-white p-6">
+        @csrf
+        @method('PUT')
+
+        <input type="hidden" name="is_visible" value="0">
+        <label class="flex items-center gap-2"><input type="checkbox" name="is_visible" value="1" @checked($biography?->contentItem?->status === 'published')> إظهار القسم بالموقع</label>
+
+        <div>
+            <label class="text-sm font-medium">الاسم</label>
+            <input name="name" required value="{{ old('name', $biography?->contentItem?->title) }}" class="mt-1 w-full rounded border-slate-300">
+        </div>
+
+        <div>
+            <label class="text-sm font-medium">النبذة</label>
+            <textarea name="excerpt" rows="2" class="mt-1 w-full rounded border-slate-300">{{ old('excerpt', $biography?->contentItem?->excerpt) }}</textarea>
+        </div>
+
+        <div>
+            <label class="text-sm font-medium">النص التفصيلي</label>
+            <textarea name="body" rows="6" class="mt-1 w-full rounded border-slate-300">{{ old('body', $biography?->contentItem?->body) }}</textarea>
+        </div>
+
+        <div>
+            <label class="text-sm font-medium">الصورة الشخصية</label>
+            @if($biography?->profileImage)<img src="{{ $biography->profileImage->url() }}" alt="" class="mt-2 h-24 w-24 rounded-full object-cover">@endif
+            <input type="file" name="profile_image" accept="image/*" class="mt-2 w-full text-sm">
+        </div>
+
+        <div>
+            <label class="text-sm font-medium">روابط التواصل (JSON)</label>
+            <textarea name="social_links" rows="3" dir="ltr" class="mt-1 w-full rounded border-slate-300 font-mono text-sm">{{ old('social_links', json_encode($biography?->contentItem?->meta['social_links'] ?? new stdClass, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) }}</textarea>
+            <p class="mt-1 text-xs text-slate-500">مثال: {"twitter": "https://x.com/...", "youtube": "https://youtube.com/..."}</p>
+            @error('social_links')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+        </div>
+
+        <div>
+            <div class="flex items-center justify-between pt-4">
+                <h2 class="text-lg font-bold">العناصر المرتبة (مؤهلات، خبرات، أنشطة، إنجازات)</h2>
+                <button type="button" id="add-section" class="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-white">+ إضافة عنصر</button>
+            </div>
+            <div id="sections-container" class="mt-3 space-y-3">
+                @foreach($biography?->sections ?? [] as $i => $section)
+                    <div class="section-row grid gap-3 rounded border border-slate-200 p-4 sm:grid-cols-2">
+                        <input type="hidden" name="sections[{{ $i }}][id]" value="{{ $section->id }}">
+                        <select name="sections[{{ $i }}][type]" class="rounded border-slate-300">
+                            @foreach($typeLabels as $value => $label)<option value="{{ $value }}" @selected($section->type === $value)>{{ $label }}</option>@endforeach
+                        </select>
+                        <input name="sections[{{ $i }}][title]" value="{{ $section->title }}" placeholder="العنوان" class="rounded border-slate-300">
+                        <textarea name="sections[{{ $i }}][body]" placeholder="التفاصيل" class="rounded border-slate-300 sm:col-span-2">{{ $section->body }}</textarea>
+                        <input type="number" name="sections[{{ $i }}][sort_order]" value="{{ $section->sort_order }}" placeholder="الترتيب" class="rounded border-slate-300">
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center gap-2"><input type="hidden" name="sections[{{ $i }}][is_visible]" value="0"><input type="checkbox" name="sections[{{ $i }}][is_visible]" value="1" @checked($section->is_visible)> ظاهر</label>
+                            <button type="button" class="remove-section text-sm text-red-700">حذف هذا العنصر</button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <p id="no-sections-hint" class="mt-3 text-sm text-slate-400 {{ ($biography?->sections->count() ?? 0) > 0 ? 'hidden' : '' }}">لا توجد عناصر بعد.</p>
+        </div>
+
+        <button class="rounded bg-emerald-700 px-5 py-2 text-white">حفظ</button>
+    </form>
+</main>
+
+<template id="section-template">
+    <div class="section-row grid gap-3 rounded border border-slate-200 p-4 sm:grid-cols-2">
+        <input type="hidden" name="sections[__INDEX__][id]" value="">
+        <select name="sections[__INDEX__][type]" class="rounded border-slate-300">
+            @foreach($typeLabels as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
+        </select>
+        <input name="sections[__INDEX__][title]" placeholder="العنوان" class="rounded border-slate-300">
+        <textarea name="sections[__INDEX__][body]" placeholder="التفاصيل" class="rounded border-slate-300 sm:col-span-2"></textarea>
+        <input type="number" name="sections[__INDEX__][sort_order]" value="0" placeholder="الترتيب" class="rounded border-slate-300">
+        <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2"><input type="hidden" name="sections[__INDEX__][is_visible]" value="0"><input type="checkbox" name="sections[__INDEX__][is_visible]" value="1" checked> ظاهر</label>
+            <button type="button" class="remove-section text-sm text-red-700">حذف هذا العنصر</button>
+        </div>
+    </div>
+</template>
+
+<script>
+(() => {
+    let index = {{ $biography?->sections->count() ?? 0 }};
+    const container = document.getElementById('sections-container');
+    const template = document.getElementById('section-template');
+    const hint = document.getElementById('no-sections-hint');
+
+    document.getElementById('add-section')?.addEventListener('click', () => {
+        const clone = template.content.cloneNode(true);
+        clone.querySelectorAll('[name*="__INDEX__"]').forEach((el) => {
+            el.name = el.name.replace('__INDEX__', index);
+        });
+        container.appendChild(clone);
+        index++;
+        hint?.classList.add('hidden');
+    });
+
+    container?.addEventListener('click', (event) => {
+        if (event.target.classList.contains('remove-section')) {
+            event.target.closest('.section-row').remove();
+            if (! container.querySelector('.section-row')) {
+                hint?.classList.remove('hidden');
+            }
+        }
+    });
+})();
+</script>
 @endsection

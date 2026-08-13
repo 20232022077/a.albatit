@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.public')
 
 @php
     $typeLabels = ['article' => 'مقال', 'study' => 'دراسة', 'video' => 'فيديو', 'pdf' => 'ملف PDF', 'image' => 'صورة توضيحية'];
@@ -8,7 +8,7 @@
     $attachment = $item->attachment();
 @endphp
 
-@section('content')
+@section('public-content')
 <main class="mx-auto max-w-3xl px-5 py-12">
     <a href="{{ route('quran-centrality.index') }}" class="text-sm font-semibold text-emerald-700">← مركزية القرآن</a>
 
@@ -35,14 +35,14 @@
             @endif
         </div>
     @elseif($item->type === 'pdf' && $attachment)
-        <a href="{{ $attachment->url() }}" target="_blank" rel="noopener" class="mt-6 inline-flex rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white">تحميل ملف PDF</a>
+        <a href="{{ $attachment->pdfUrl() }}" target="_blank" rel="noopener" class="mt-6 inline-flex rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white">تحميل ملف PDF</a>
     @endif
 
     @if($item->body)<div class="prose prose-slate mt-8 max-w-none leading-8">{!! nl2br(e($item->body)) !!}</div>@endif
 
-    @if($item->tags->isNotEmpty())
+    @if($item->tags->where('is_active', true)->isNotEmpty())
         <div class="mt-8 flex flex-wrap gap-2">
-            @foreach($item->tags as $tag)<span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">#{{ $tag->name }}</span>@endforeach
+            @foreach($item->tags->where('is_active', true) as $tag)<span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">#{{ $tag->name }}</span>@endforeach
         </div>
     @endif
 </main>

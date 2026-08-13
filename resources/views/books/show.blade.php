@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.public')
 
 @php
     $seo = $item->meta['seo'] ?? [];
@@ -7,7 +7,7 @@
     $book = $item->book;
 @endphp
 
-@section('content')
+@section('public-content')
 <main class="mx-auto max-w-4xl px-5 py-12">
     <a href="{{ route('books.index') }}" class="text-sm font-semibold text-emerald-700">← الكتب</a>
 
@@ -19,7 +19,7 @@
                 <div class="grid aspect-[3/4] w-full place-items-center rounded-2xl bg-emerald-50 text-5xl text-emerald-700">📖</div>
             @endif
             @if($book?->pdf)
-                <a href="{{ $book->pdf->url() }}" target="_blank" rel="noopener" class="mt-4 flex items-center justify-center rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white">تحميل الكتاب PDF</a>
+                <a href="{{ $book->pdf->pdfUrl() }}" target="_blank" rel="noopener" class="mt-4 flex items-center justify-center rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white">تحميل الكتاب PDF</a>
             @endif
         </div>
         <div class="sm:col-span-2">
@@ -42,9 +42,9 @@
             @if($item->excerpt)<p class="mt-6 text-lg leading-8 text-slate-700">{{ $item->excerpt }}</p>@endif
             @if($item->body)<div class="prose prose-slate mt-6 max-w-none leading-8">{!! nl2br(e($item->body)) !!}</div>@endif
 
-            @if($item->tags->isNotEmpty())
+            @if($item->tags->where('is_active', true)->isNotEmpty())
                 <div class="mt-8 flex flex-wrap gap-2">
-                    @foreach($item->tags as $tag)<span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">#{{ $tag->name }}</span>@endforeach
+                    @foreach($item->tags->where('is_active', true) as $tag)<span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">#{{ $tag->name }}</span>@endforeach
                 </div>
             @endif
         </div>

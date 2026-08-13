@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.public')
 
 @php
     $title = 'التأملات - ' . config('app.name');
@@ -6,10 +6,9 @@
     $sortLabels = ['newest' => 'الأحدث', 'oldest' => 'الأقدم', 'title' => 'العنوان (أ-ي)'];
 @endphp
 
-@section('content')
+@section('public-content')
 <main class="mx-auto max-w-6xl px-5 py-12">
-    <a href="{{ route('home') }}" class="text-sm font-semibold text-emerald-700">← الرئيسية</a>
-    <h1 class="mt-5 text-3xl font-bold">التأملات</h1>
+    <h1 class="text-3xl font-bold">التأملات</h1>
     <p class="mt-3 max-w-2xl leading-7 text-slate-600">{{ $metaDescription }}</p>
 
     <form action="{{ route('reflections.index') }}" class="mt-7 flex flex-wrap gap-3">

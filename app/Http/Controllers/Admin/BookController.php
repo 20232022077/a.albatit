@@ -10,6 +10,7 @@ use App\Models\Book;
 use App\Models\Category;
 use App\Models\ContentItem;
 use App\Models\Media;
+use App\Support\SafeFileUpload;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -214,6 +215,7 @@ class BookController extends Controller
 
         if ($oldId && $old = Media::find($oldId)) {
             Storage::disk($old->disk)->delete($old->path);
+            SafeFileUpload::deleteVariants($old->disk, $old->metadata['variants'] ?? []);
             $old->delete();
         }
     }

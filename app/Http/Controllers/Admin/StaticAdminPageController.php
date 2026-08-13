@@ -10,7 +10,6 @@ class StaticAdminPageController extends Controller
 {
     private const SECTIONS = [
         'content' => ['title' => 'إدارة المحتوى', 'description' => 'ستظهر هنا أدوات إدارة محتوى المنصة عند إضافة وحدات المحتوى في المهام القادمة.', 'permission' => 'content.view'],
-        'media' => ['title' => 'الوسائط', 'description' => 'مكتبة الصور والملفات وملفات PDF ستكون متاحة هنا.', 'permission' => 'content.view'],
         'categories' => ['title' => 'التصنيفات', 'description' => 'إدارة تصنيفات المحتوى وتنظيمها هرميًا.', 'permission' => 'content.view'],
         'tags' => ['title' => 'الوسوم', 'description' => 'إدارة الوسوم وإعادة استخدامها عبر المحتوى.', 'permission' => 'content.view'],
         'settings' => ['title' => 'إعدادات الموقع', 'description' => 'إعدادات المنصة العامة ستظهر هنا.', 'permission' => 'settings.manage'],
@@ -23,6 +22,7 @@ class StaticAdminPageController extends Controller
         abort_unless(isset(self::SECTIONS[$section]), 404);
         $page = self::SECTIONS[$section];
         $this->authorize('permission', $page['permission']);
+
         return view('admin.placeholder', compact('page', 'section'));
     }
 }

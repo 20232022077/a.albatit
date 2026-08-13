@@ -66,7 +66,7 @@
             </div>
             <div>
                 <label class="text-sm font-medium">الملف المرفق (PDF أو فيديو)</label>
-                @if($attachment = $item->attachment())<a href="{{ $attachment->url() }}" target="_blank" class="mt-2 block text-sm text-emerald-700">{{ $attachment->original_name }}</a>@endif
+                @if($attachment = $item->attachment())<a href="{{ $attachment->isPdf() ? $attachment->pdfUrl() : $attachment->url() }}" target="_blank" class="mt-2 block text-sm text-emerald-700">{{ $attachment->original_name }}</a>@endif
                 <input type="file" name="attachment" accept=".pdf,video/*" class="mt-2 w-full text-sm">
                 @error('attachment')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
             </div>

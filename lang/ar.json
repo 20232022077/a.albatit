@@ -1,3 +1,9 @@
 {
-    "Welcome": "مرحبًا"
+    "Welcome": "مرحبًا",
+    "Showing": "عرض",
+    "to": "إلى",
+    "of": "من",
+    "results": "نتيجة",
+    "Pagination Navigation": "التنقل بين الصفحات",
+    "Go to page :page": "الذهاب إلى الصفحة :page"
 }

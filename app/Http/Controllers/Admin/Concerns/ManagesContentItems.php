@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Concerns;
 use App\Models\ContentItem;
 use App\Models\Media;
 use App\Models\Tag;
+use App\Support\SafeFileUpload;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -71,18 +72,38 @@ trait ManagesContentItems
 
     protected function createMedia(UploadedFile $file, string $directory, int $userId): Media
     {
-        $path = $file->store($directory, 'public');
-        [$width, $height] = @getimagesize($file->getRealPath()) ?: [null, null];
+        $extension = strtolower($file->getClientOriginalExtension());
+        $type = SafeFileUpload::classify($extension);
+
+        $allowed = match ($type) {
+            'pdf' => SafeFileUpload::PDF_EXTENSIONS,
+            'video' => SafeFileUpload::VIDEO_EXTENSIONS,
+            default => SafeFileUpload::IMAGE_EXTENSIONS,
+        };
+        $maxKb = match ($type) {
+            'pdf', 'video' => 51200,
+            default => 10240,
+        };
+        SafeFileUpload::assertSafe($file, $allowed, $maxKb);
+
+        $disk = SafeFileUpload::diskFor($type ?? 'image');
+        $storeDirectory = $type === 'pdf' ? 'pdfs/'.$directory : $directory;
+        $path = $file->store($storeDirectory, $disk);
+
+        $dimensions = $type === 'image' ? (@getimagesize($file->getRealPath()) ?: [null, null]) : [null, null];
+        [$width, $height] = $dimensions;
+        $variants = $width ? SafeFileUpload::generateImageVariants($disk, $path) : [];
 
         return Media::create([
             'uploaded_by' => $userId,
-            'disk' => 'public',
+            'disk' => $disk,
             'path' => $path,
-            'original_name' => $file->getClientOriginalName(),
-            'mime_type' => $file->getClientMimeType(),
+            'original_name' => basename($file->getClientOriginalName()),
+            'mime_type' => $file->getMimeType(),
             'size' => $file->getSize(),
             'width' => $width,
             'height' => $height,
+            'metadata' => $variants !== [] ? ['variants' => $variants] : null,
         ]);
     }
 
@@ -97,6 +118,7 @@ trait ManagesContentItems
             $item->media()->detach($old->pluck('id')->all());
             foreach ($old as $oldMedia) {
                 Storage::disk($oldMedia->disk)->delete($oldMedia->path);
+                SafeFileUpload::deleteVariants($oldMedia->disk, $oldMedia->metadata['variants'] ?? []);
                 $oldMedia->delete();
             }
         }
