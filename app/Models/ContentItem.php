@@ -67,6 +67,31 @@ class ContentItem extends Model
         return $this->hasOne(Book::class, 'content_item_id');
     }
 
+    public function program()
+    {
+        return $this->hasOne(Program::class, 'content_item_id');
+    }
+
+    public function programEpisode()
+    {
+        return $this->hasOne(ProgramEpisode::class, 'content_item_id');
+    }
+
+    public function lecture()
+    {
+        return $this->hasOne(Lecture::class, 'content_item_id');
+    }
+
+    public function reflection()
+    {
+        return $this->hasOne(Reflection::class, 'content_item_id');
+    }
+
+    public function wallPost()
+    {
+        return $this->hasOne(WallPost::class, 'content_item_id');
+    }
+
     public function coverImage(): ?Media
     {
         return $this->media->firstWhere('pivot.collection', 'cover');

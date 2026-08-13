@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 trait ManagesContentItems
@@ -83,6 +84,25 @@ trait ManagesContentItems
             'width' => $width,
             'height' => $height,
         ]);
+    }
+
+    protected function replaceMediaCollection(ContentItem $item, ?UploadedFile $file, string $collection, string $directory, int $userId): void
+    {
+        if (! $file) {
+            return;
+        }
+
+        $old = $item->media()->wherePivot('collection', $collection)->get();
+        if ($old->isNotEmpty()) {
+            $item->media()->detach($old->pluck('id')->all());
+            foreach ($old as $oldMedia) {
+                Storage::disk($oldMedia->disk)->delete($oldMedia->path);
+                $oldMedia->delete();
+            }
+        }
+
+        $media = $this->createMedia($file, $directory, $userId);
+        $item->media()->attach($media->id, ['collection' => $collection, 'sort_order' => 0]);
     }
 
     protected function recordActivity(string $event, ContentItem $item): void

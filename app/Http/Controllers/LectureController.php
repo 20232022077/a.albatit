@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class BookController extends Controller
+class LectureController extends Controller
 {
     private const SORTS = [
         'newest' => ['published_at', 'desc'],
@@ -22,8 +22,8 @@ class BookController extends Controller
         [$column, $direction] = self::SORTS[$sortKey];
 
         $items = ContentItem::published()
-            ->ofType('book')
-            ->with(['book', 'categories'])
+            ->ofType('lecture')
+            ->with(['categories', 'media'])
             ->when($request->filled('category_id'), fn (Builder $q) => $q->whereHas(
                 'categories', fn (Builder $c) => $c->where('categories.id', $request->integer('category_id'))
             ))
@@ -32,7 +32,7 @@ class BookController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('books.index', [
+        return view('lectures.index', [
             'items' => $items,
             'categories' => Category::active()->orderBy('name')->get(),
             'sortKey' => $sortKey,
@@ -42,9 +42,9 @@ class BookController extends Controller
 
     public function show(ContentItem $item): View
     {
-        $item->load(['book', 'categories', 'tags']);
-        abort_unless($item->type === 'book' && $item->status === 'published', 404);
+        $item->load(['lecture', 'categories', 'tags', 'media']);
+        abort_unless($item->type === 'lecture' && $item->status === 'published', 404);
 
-        return view('books.show', ['item' => $item]);
+        return view('lectures.show', ['item' => $item]);
     }
 }

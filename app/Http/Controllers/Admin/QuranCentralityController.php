@@ -11,9 +11,7 @@ use App\Models\ContentItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class QuranCentralityController extends Controller
@@ -90,8 +88,8 @@ class QuranCentralityController extends Controller
 
             $this->syncCategories($item, $data['category_ids'] ?? []);
             $this->syncTags($item, $data['tags'] ?? '');
-            $this->replaceMedia($item, $request->file('cover_image'), 'cover', $request->user()->id);
-            $this->replaceMedia($item, $request->file('attachment'), 'attachment', $request->user()->id);
+            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'quran-centrality', $request->user()->id);
+            $this->replaceMediaCollection($item, $request->file('attachment'), 'attachment', 'quran-centrality', $request->user()->id);
 
             return $item;
         });
@@ -134,8 +132,8 @@ class QuranCentralityController extends Controller
 
             $this->syncCategories($item, $data['category_ids'] ?? []);
             $this->syncTags($item, $data['tags'] ?? '');
-            $this->replaceMedia($item, $request->file('cover_image'), 'cover', $request->user()->id);
-            $this->replaceMedia($item, $request->file('attachment'), 'attachment', $request->user()->id);
+            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'quran-centrality', $request->user()->id);
+            $this->replaceMediaCollection($item, $request->file('attachment'), 'attachment', 'quran-centrality', $request->user()->id);
         });
 
         $this->recordActivity('quran_centrality.updated', $item);
@@ -209,24 +207,5 @@ class QuranCentralityController extends Controller
     {
         $ids = collect($categoryIds)->push($this->sectionCategory()->id)->unique()->all();
         $item->categories()->sync($ids);
-    }
-
-    private function replaceMedia(ContentItem $item, ?UploadedFile $file, string $collection, int $userId): void
-    {
-        if (! $file) {
-            return;
-        }
-
-        $old = $item->media()->wherePivot('collection', $collection)->get();
-        if ($old->isNotEmpty()) {
-            $item->media()->detach($old->pluck('id')->all());
-            foreach ($old as $oldMedia) {
-                Storage::disk($oldMedia->disk)->delete($oldMedia->path);
-                $oldMedia->delete();
-            }
-        }
-
-        $media = $this->createMedia($file, 'quran-centrality', $userId);
-        $item->media()->attach($media->id, ['collection' => $collection, 'sort_order' => 0]);
     }
 }
