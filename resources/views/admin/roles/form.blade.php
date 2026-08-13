@@ -1,0 +1,8 @@
+@extends('layouts.admin')
+
+@section('admin-content')
+    <main class="mx-auto max-w-3xl px-6 py-10"><h1 class="text-2xl font-bold">{{ $role->exists ? 'تعديل دور' : 'دور جديد' }}</h1><form method="POST" action="{{ $role->exists ? route('admin.roles.update', $role) : route('admin.roles.store') }}" class="mt-6 space-y-5 rounded-xl border border-slate-200 p-6">@csrf @if($role->exists) @method('PUT') @endif
+        <div><label>المعرف التقني</label><input name="name" dir="ltr" value="{{ old('name', $role->name) }}" required class="mt-1 w-full rounded border-slate-300">@error('name')<p class="text-red-700">{{ $message }}</p>@enderror</div><div><label>اسم الدور</label><input name="display_name" value="{{ old('display_name', $role->display_name) }}" required class="mt-1 w-full rounded border-slate-300"></div><div><label>الوصف</label><textarea name="description" class="mt-1 w-full rounded border-slate-300">{{ old('description', $role->description) }}</textarea></div>
+        <fieldset><legend class="font-medium">الصلاحيات</legend><div class="mt-3 grid gap-2 sm:grid-cols-2">@foreach($permissions as $permission)<label class="flex gap-2 rounded border border-slate-200 p-2"><input type="checkbox" name="permission_ids[]" value="{{ $permission->id }}" @checked(in_array($permission->id, old('permission_ids', $role->permissions->pluck('id')->all())) )><span>{{ $permission->display_name }}<small class="block text-slate-500" dir="ltr">{{ $permission->name }}</small></span></label>@endforeach</div></fieldset>
+        <div class="flex gap-3"><button class="rounded bg-emerald-700 px-4 py-2 text-white">حفظ</button><a href="{{ route('admin.roles.index') }}" class="px-4 py-2">إلغاء</a></div></form></main>
+@endsection

@@ -1,0 +1,6 @@
+@extends('layouts.admin')
+
+@section('admin-content')
+    <main class="mx-auto max-w-7xl px-6 py-10"><div class="flex items-center justify-between"><h1 class="text-2xl font-bold">الأدوار والصلاحيات</h1>@can('create', App\Models\Role::class)<a href="{{ route('admin.roles.create') }}" class="rounded-lg bg-emerald-700 px-4 py-2 font-medium text-white">دور جديد</a>@endcan</div>@if(session('status'))<p class="mt-4 rounded-lg bg-emerald-50 p-3 text-emerald-800">{{ session('status') }}</p>@endif
+        <div class="mt-6 overflow-x-auto rounded-xl border border-slate-200"><table class="min-w-full text-right text-sm"><thead class="bg-slate-50"><tr><th class="p-4">الدور</th><th class="p-4">المستخدمون</th><th class="p-4"></th></tr></thead><tbody>@foreach($roles as $role)<tr class="border-t border-slate-200"><td class="p-4">{{ $role->display_name }}</td><td class="p-4">{{ $role->users_count }}</td><td class="p-4">@can('update', $role)<a class="text-emerald-700" href="{{ route('admin.roles.edit', $role) }}">تعديل</a>@endcan @can('delete', $role)<form class="inline" method="POST" action="{{ route('admin.roles.destroy', $role) }}">@csrf @method('DELETE')<button class="mr-3 text-red-700" onclick="return confirm('حذف الدور؟')">حذف</button></form>@endcan</td></tr>@endforeach</tbody></table></div></main>
+@endsection
