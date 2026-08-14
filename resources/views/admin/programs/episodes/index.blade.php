@@ -34,7 +34,7 @@
                     <tr class="border-t border-slate-200">
                         <td class="p-4">
                             @if($cover = $episode->coverImage())
-                                <img src="{{ $cover->url() }}" alt="" class="h-12 w-12 rounded-lg object-cover">
+                                <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="" class="h-12 w-12 rounded-lg object-cover">
                             @else
                                 <span class="grid h-12 w-12 place-items-center rounded-lg bg-slate-100 text-slate-400">—</span>
                             @endif

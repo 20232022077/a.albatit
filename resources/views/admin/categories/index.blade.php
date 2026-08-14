@@ -19,9 +19,9 @@
     @if(session('status'))<p class="mt-4 rounded-lg bg-emerald-50 p-3 text-emerald-800">{{ session('status') }}</p>@endif
 
     <form method="GET" class="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
-        <div class="min-w-[200px] flex-1"><label class="block text-xs font-medium text-slate-500">بحث</label><input type="text" name="q" value="{{ request('q') }}" placeholder="ابحث بالاسم أو الوصف" class="mt-1 w-full rounded border-slate-300"></div>
-        <div><label class="block text-xs font-medium text-slate-500">الحالة</label>
-            <select name="status" class="mt-1 rounded border-slate-300">
+        <div class="min-w-[200px] flex-1"><label for="field-q" class="block text-xs font-medium text-slate-500">بحث</label><input type="text" id="field-q" name="q" value="{{ request('q') }}" placeholder="ابحث بالاسم أو الوصف" class="mt-1 w-full rounded border-slate-300"></div>
+        <div><label for="field-status" class="block text-xs font-medium text-slate-500">الحالة</label>
+            <select id="field-status" name="status" class="mt-1 rounded border-slate-300">
                 <option value="">الكل</option>
                 <option value="active" @selected(request('status') === 'active')>مفعّل</option>
                 <option value="inactive" @selected(request('status') === 'inactive')>معطّل</option>
@@ -48,7 +48,7 @@
                     <tr class="border-t border-slate-200">
                         <td class="p-4">
                             @if($category->image)
-                                <img src="{{ $category->image->url() }}" alt="" class="h-12 w-12 rounded-lg object-cover">
+                                <img loading="lazy" src="{{ $category->image->displayUrl() }}" alt="" class="h-12 w-12 rounded-lg object-cover">
                             @else
                                 <span class="grid h-12 w-12 place-items-center rounded-lg bg-slate-100 text-slate-400">—</span>
                             @endif

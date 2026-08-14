@@ -24,7 +24,7 @@
     @if($videoId)
         @include('partials.youtube-embed', ['videoId' => $videoId, 'class' => 'mt-6 aspect-video overflow-hidden rounded-2xl bg-black'])
     @elseif($cover = $item->coverImage())
-        <img src="{{ $cover->url() }}" alt="{{ $item->title }}" class="mt-6 w-full rounded-2xl object-cover">
+        <img src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="mt-6 w-full rounded-2xl object-cover">
     @endif
 
     @if($item->excerpt)<p class="mt-6 text-lg leading-8 text-slate-700">{{ $item->excerpt }}</p>@endif

@@ -9,14 +9,14 @@
         @if($tag->exists) @method('PUT') @endif
 
         <div>
-            <label class="text-sm font-medium">الاسم</label>
-            <input name="name" value="{{ old('name', $tag->name) }}" required class="mt-1 w-full rounded border-slate-300">
+            <label for="field-name" class="text-sm font-medium">الاسم</label>
+            <input id="field-name" name="name" value="{{ old('name', $tag->name) }}" required class="mt-1 w-full rounded border-slate-300">
             @error('name')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
         </div>
 
         <div>
-            <label class="text-sm font-medium">الرابط المختصر (Slug)</label>
-            <input name="slug" dir="ltr" value="{{ old('slug', $tag->slug) }}" placeholder="يُولَّد تلقائيًا من الاسم إذا تُرك فارغًا" class="mt-1 w-full rounded border-slate-300">
+            <label for="field-slug" class="text-sm font-medium">الرابط المختصر (Slug)</label>
+            <input id="field-slug" name="slug" dir="ltr" value="{{ old('slug', $tag->slug) }}" placeholder="يُولَّد تلقائيًا من الاسم إذا تُرك فارغًا" class="mt-1 w-full rounded border-slate-300">
             @error('slug')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
         </div>
 

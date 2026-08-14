@@ -4,6 +4,8 @@
     $contentItem = $biography->contentItem;
     $title = $contentItem->title . ' - ' . config('app.name');
     $metaDescription = $contentItem->excerpt;
+    $trail = [['الرئيسية', route('home')], ['السيرة الذاتية', null]];
+    $ogImage = $biography->profileImage?->url();
     $socialLinks = $contentItem->meta['social_links'] ?? [];
     $socialLabels = ['twitter' => 'X (تويتر)', 'x' => 'X (تويتر)', 'youtube' => 'يوتيوب', 'facebook' => 'فيسبوك', 'instagram' => 'إنستغرام', 'telegram' => 'تيليجرام', 'snapchat' => 'سناب شات', 'tiktok' => 'تيك توك', 'website' => 'الموقع'];
     $groups = [
@@ -16,6 +18,18 @@
     $visibleSections = $biography->sections->where('is_visible', true);
 @endphp
 
+@push('json-ld')
+<script type="application/ld+json">{!! json_encode(array_filter([
+    '@@context' => 'https://schema.org',
+    '@type' => 'Person',
+    'name' => $contentItem->title,
+    'url' => route('biography.show'),
+    'description' => $contentItem->excerpt,
+    'image' => $ogImage,
+    'sameAs' => array_values(array_filter($socialLinks)) ?: null,
+]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
+
 @section('public-content')
 <section class="relative overflow-hidden bg-gradient-to-b from-emerald-950 via-emerald-900 to-emerald-950 text-white">
     <div class="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl"></div>
@@ -25,7 +39,7 @@
         <div class="mx-auto w-56 sm:w-64">
             <div class="relative rounded-[2rem] bg-gradient-to-br from-emerald-400 via-teal-300 to-amber-300 p-1.5 shadow-2xl">
                 @if($biography->profileImage)
-                    <img src="{{ $biography->profileImage->url() }}" alt="{{ $contentItem->title }}" class="aspect-square w-full rounded-[1.7rem] object-cover">
+                    <img src="{{ $biography->profileImage->displayUrl() }}" alt="{{ $contentItem->title }}" class="aspect-square w-full rounded-[1.7rem] object-cover">
                 @else
                     <div class="grid aspect-square w-full place-items-center rounded-[1.7rem] bg-emerald-800 text-6xl">👤</div>
                 @endif
@@ -50,6 +64,8 @@
 </section>
 
 <main class="mx-auto -mt-2 max-w-4xl px-5 pb-16 lg:px-8">
+    <div class="pt-6">@include('partials.breadcrumbs')</div>
+
     @if($contentItem->body)
         <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
             <p class="text-sm font-bold text-emerald-700">نبذة</p>
@@ -64,7 +80,7 @@
                 @foreach($books as $item)
                     <a href="{{ route('books.show', $item->slug) }}" class="group block overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                         @if($item->book?->cover)
-                            <img src="{{ $item->book->cover->url() }}" alt="{{ $item->title }}" class="h-52 w-full object-cover transition duration-300 group-hover:scale-105">
+                            <img loading="lazy" src="{{ $item->book->cover->displayUrl() }}" alt="{{ $item->title }}" class="h-52 w-full object-cover transition duration-300 group-hover:scale-105">
                         @else
                             <div class="grid h-52 w-full place-items-center bg-emerald-50 text-4xl text-emerald-700">📖</div>
                         @endif

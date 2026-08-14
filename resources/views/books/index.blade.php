@@ -27,7 +27,7 @@
         @forelse($items as $item)
             <a href="{{ route('books.show', $item->slug) }}" class="block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                 @if($item->book?->cover)
-                    <img src="{{ $item->book->cover->url() }}" alt="{{ $item->title }}" class="h-56 w-full object-cover">
+                    <img loading="lazy" src="{{ $item->book->cover->displayUrl() }}" alt="{{ $item->title }}" class="h-56 w-full object-cover">
                 @else
                     <div class="grid h-56 w-full place-items-center bg-emerald-50 text-4xl text-emerald-700">📖</div>
                 @endif

@@ -3,6 +3,7 @@
 namespace App\Search;
 
 use App\Models\ContentItem;
+use App\Support\ContentUrl;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -68,7 +69,7 @@ class EloquentSearchEngine implements SearchEngine
             typeLabel: self::TYPE_LABELS[$item->type] ?? self::CATEGORY_LABELS[$sectionSlug] ?? $item->type,
             excerpt: $item->excerpt ?: (filled($item->body) ? Str::limit(strip_tags((string) $item->body), 150) : null),
             imageUrl: $this->coverUrl($item),
-            url: $this->resolveUrl($item, $sectionSlug),
+            url: ContentUrl::for($item),
             publishedAt: $item->published_at,
         );
     }
@@ -92,22 +93,6 @@ class EloquentSearchEngine implements SearchEngine
             return null;
         }
 
-        return $cover->webpUrl() ?? $cover->url();
-    }
-
-    private function resolveUrl(ContentItem $item, ?string $sectionSlug): string
-    {
-        return match (true) {
-            $item->type === 'book' => route('books.show', $item->slug),
-            $item->type === 'lecture' => route('lectures.show', $item->slug),
-            $item->type === 'reflection' => route('reflections.show', $item->slug),
-            $item->type === 'wall_post' => route('wall.index'),
-            $item->type === 'program' => route('programs.show', $item->slug),
-            $item->type === 'program_episode' && $item->programEpisode?->program?->contentItem => route('programs.show', $item->programEpisode->program->contentItem->slug),
-            $item->type === 'program_episode' => route('programs.index'),
-            $sectionSlug === 'quran-centrality' => route('quran-centrality.show', $item->slug),
-            $sectionSlug === 'quraniyat' => route('quraniyat.show', $item->slug),
-            default => route('home'),
-        };
+        return $cover->displayUrl();
     }
 }

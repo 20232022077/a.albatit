@@ -77,6 +77,7 @@ class CategoryController extends Controller
         });
 
         $this->record('categories.created', $category);
+        Category::flushCache();
 
         return redirect()->route('admin.categories.index')->with('status', 'تم إنشاء التصنيف.');
     }
@@ -110,6 +111,7 @@ class CategoryController extends Controller
         });
 
         $this->record('categories.updated', $category);
+        Category::flushCache();
 
         return redirect()->route('admin.categories.index')->with('status', 'تم تحديث التصنيف.');
     }
@@ -119,6 +121,7 @@ class CategoryController extends Controller
         $this->authorize('permission', 'content.delete');
         $category->delete();
         $this->record('categories.deleted', $category);
+        Category::flushCache();
 
         return redirect()->route('admin.categories.index')->with('status', 'تم نقل التصنيف إلى المحذوفات.');
     }
@@ -129,6 +132,7 @@ class CategoryController extends Controller
         $category = Category::onlyTrashed()->findOrFail($id);
         $category->restore();
         $this->record('categories.restored', $category);
+        Category::flushCache();
 
         return redirect()->route('admin.categories.index', ['trashed' => 1])->with('status', 'تمت استعادة التصنيف.');
     }
@@ -138,6 +142,7 @@ class CategoryController extends Controller
         $this->authorize('permission', 'content.update');
         $category->update(['is_active' => true]);
         $this->record('categories.activated', $category);
+        Category::flushCache();
 
         return back()->with('status', 'تم تفعيل التصنيف.');
     }
@@ -147,6 +152,7 @@ class CategoryController extends Controller
         $this->authorize('permission', 'content.update');
         $category->update(['is_active' => false]);
         $this->record('categories.deactivated', $category);
+        Category::flushCache();
 
         return back()->with('status', 'تم تعطيل التصنيف.');
     }

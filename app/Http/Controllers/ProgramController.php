@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ResolvesContentSlug;
 use App\Models\ContentItem;
+use App\Support\SiteSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class ProgramController extends Controller
             ->with(['program', 'categories', 'media'])
             ->search($request->string('q')->toString() ?: null)
             ->latest('published_at')
-            ->paginate(12)
+            ->paginate(app(SiteSettings::class)->itemsPerPage())
             ->withQueryString();
 
         return view('programs.index', [

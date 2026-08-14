@@ -47,6 +47,18 @@ class Media extends Model
         return $path ? Storage::disk($this->disk)->url($path) : null;
     }
 
+    /**
+     * The best URL to actually render this image with: the WebP variant
+     * when one was generated (smaller, modern format), falling back to the
+     * original file. Use this instead of url() anywhere an image is being
+     * displayed; url() stays for the literal original (e.g. video/PDF
+     * sources, or anywhere the exact uploaded file is required).
+     */
+    public function displayUrl(): string
+    {
+        return $this->webpUrl() ?? $this->url();
+    }
+
     public function avifUrl(): ?string
     {
         $path = $this->metadata['variants']['avif'] ?? null;

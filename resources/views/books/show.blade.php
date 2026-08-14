@@ -7,7 +7,25 @@
     $book = $item->book;
     $trail = [['الرئيسية', route('home')], ['الكتب', route('books.index')], [$item->title, null]];
     $ogImage = $book?->cover?->url();
+    $ogType = 'book';
 @endphp
+
+@push('json-ld')
+<script type="application/ld+json">{!! json_encode(array_filter([
+    '@@context' => 'https://schema.org',
+    '@type' => 'Book',
+    'name' => $item->title,
+    'url' => route('books.show', $item->slug),
+    'description' => $item->excerpt,
+    'image' => $ogImage,
+    'author' => $book?->author_name ? ['@type' => 'Person', 'name' => $book->author_name] : null,
+    'datePublished' => $item->published_at?->toDateString(),
+    'isbn' => $book?->isbn,
+    'numberOfPages' => $book?->pages_count,
+    'publisher' => $book?->publisher ? ['@type' => 'Organization', 'name' => $book->publisher] : null,
+    'inLanguage' => 'ar',
+]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
 
 @section('public-content')
 <main class="mx-auto max-w-4xl px-5 py-12">
@@ -16,7 +34,7 @@
     <div class="mt-6 grid gap-8 sm:grid-cols-3">
         <div class="sm:col-span-1">
             @if($book?->cover)
-                <img src="{{ $book->cover->url() }}" alt="{{ $item->title }}" class="w-full rounded-2xl object-cover shadow-sm">
+                <img src="{{ $book->cover->displayUrl() }}" alt="{{ $item->title }}" class="w-full rounded-2xl object-cover shadow-sm">
             @else
                 <div class="grid aspect-[3/4] w-full place-items-center rounded-2xl bg-emerald-50 text-5xl text-emerald-700">📖</div>
             @endif

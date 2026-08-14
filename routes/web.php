@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\QuranCentralityController as AdminQuranCentrality
 use App\Http\Controllers\Admin\QuraniyatController as AdminQuraniyatController;
 use App\Http\Controllers\Admin\ReflectionController as AdminReflectionController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StaticAdminPageController;
 use App\Http\Controllers\Admin\TagController as AdminTagController;
 use App\Http\Controllers\Admin\UserController;
@@ -26,6 +27,8 @@ use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\QuranCentralityController;
 use App\Http\Controllers\QuraniyatController;
 use App\Http\Controllers\ReflectionController;
+use App\Http\Controllers\RobotsController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\WallController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +36,8 @@ Route::get('/', function () {
     return app(HomeController::class)->index();
 })->name('home');
 Route::get('/search', [HomeController::class, 'search'])->name('search');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/robots.txt', [RobotsController::class, 'index'])->name('robots');
 Route::get('/biography', [PublicBiographyController::class, 'show'])->name('biography.show');
 Route::get('/quran-centrality', [QuranCentralityController::class, 'index'])->name('quran-centrality.index');
 Route::get('/quran-centrality/{slug}', [QuranCentralityController::class, 'show'])->name('quran-centrality.show');
@@ -60,6 +65,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->as('admin.')->group(function () {
         Route::get('biography', [BiographyController::class, 'edit'])->name('biography.edit');
         Route::put('biography', [BiographyController::class, 'update'])->name('biography.update');
+        Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
+        Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
         Route::resource('users', UserController::class)->except('show');
         Route::resource('roles', RoleController::class)->except('show');
         Route::prefix('quran-centrality')->as('quran-centrality.')->group(function () {
@@ -180,6 +187,6 @@ Route::middleware('auth')->group(function () {
             Route::post('/{id}/restore', [AdminMediaController::class, 'restore'])->name('restore');
             Route::delete('/{id}/force', [AdminMediaController::class, 'forceDestroy'])->name('force-destroy');
         });
-        Route::get('{section}', StaticAdminPageController::class)->whereIn('section', ['content', 'settings', 'activity-logs', 'backups'])->name('section');
+        Route::get('{section}', StaticAdminPageController::class)->whereIn('section', ['content', 'activity-logs', 'backups'])->name('section');
     });
 });

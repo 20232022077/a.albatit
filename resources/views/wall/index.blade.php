@@ -25,7 +25,7 @@
                 </div>
                 <p class="mt-3 whitespace-pre-line leading-8 text-slate-800">{{ $item->body }}</p>
                 @if($cover = $item->coverImage())
-                    <img src="{{ $cover->url() }}" alt="" class="mt-4 w-full rounded-xl object-cover">
+                    <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="" class="mt-4 w-full rounded-xl object-cover">
                 @endif
                 @if($videoId)
                     @include('partials.youtube-embed', ['videoId' => $videoId, 'class' => 'mt-4 aspect-video overflow-hidden rounded-xl bg-black'])

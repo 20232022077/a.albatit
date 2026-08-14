@@ -17,29 +17,29 @@
         <label class="flex items-center gap-2"><input type="checkbox" name="is_visible" value="1" @checked($biography?->contentItem?->status === 'published')> إظهار القسم بالموقع</label>
 
         <div>
-            <label class="text-sm font-medium">الاسم</label>
-            <input name="name" required value="{{ old('name', $biography?->contentItem?->title) }}" class="mt-1 w-full rounded border-slate-300">
+            <label for="field-name" class="text-sm font-medium">الاسم</label>
+            <input id="field-name" name="name" required value="{{ old('name', $biography?->contentItem?->title) }}" class="mt-1 w-full rounded border-slate-300">
         </div>
 
         <div>
-            <label class="text-sm font-medium">النبذة</label>
-            <textarea name="excerpt" rows="2" class="mt-1 w-full rounded border-slate-300">{{ old('excerpt', $biography?->contentItem?->excerpt) }}</textarea>
+            <label for="field-excerpt" class="text-sm font-medium">النبذة</label>
+            <textarea id="field-excerpt" name="excerpt" rows="2" class="mt-1 w-full rounded border-slate-300">{{ old('excerpt', $biography?->contentItem?->excerpt) }}</textarea>
         </div>
 
         <div>
-            <label class="text-sm font-medium">النص التفصيلي</label>
-            <textarea name="body" rows="6" class="mt-1 w-full rounded border-slate-300">{{ old('body', $biography?->contentItem?->body) }}</textarea>
+            <label for="field-body" class="text-sm font-medium">النص التفصيلي</label>
+            <textarea id="field-body" name="body" rows="6" class="mt-1 w-full rounded border-slate-300">{{ old('body', $biography?->contentItem?->body) }}</textarea>
         </div>
 
         <div>
             <label class="text-sm font-medium">الصورة الشخصية</label>
-            @if($biography?->profileImage)<img src="{{ $biography->profileImage->url() }}" alt="" class="mt-2 h-24 w-24 rounded-full object-cover">@endif
+            @if($biography?->profileImage)<img loading="lazy" src="{{ $biography->profileImage->displayUrl() }}" alt="" class="mt-2 h-24 w-24 rounded-full object-cover">@endif
             <input type="file" name="profile_image" accept="image/*" class="mt-2 w-full text-sm">
         </div>
 
         <div>
-            <label class="text-sm font-medium">روابط التواصل (JSON)</label>
-            <textarea name="social_links" rows="3" dir="ltr" class="mt-1 w-full rounded border-slate-300 font-mono text-sm">{{ old('social_links', json_encode($biography?->contentItem?->meta['social_links'] ?? new stdClass, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) }}</textarea>
+            <label for="field-social_links" class="text-sm font-medium">روابط التواصل (JSON)</label>
+            <textarea id="field-social_links" name="social_links" rows="3" dir="ltr" class="mt-1 w-full rounded border-slate-300 font-mono text-sm">{{ old('social_links', json_encode($biography?->contentItem?->meta['social_links'] ?? new stdClass, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) }}</textarea>
             <p class="mt-1 text-xs text-slate-500">مثال: {"twitter": "https://x.com/...", "youtube": "https://youtube.com/..."}</p>
             @error('social_links')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
         </div>

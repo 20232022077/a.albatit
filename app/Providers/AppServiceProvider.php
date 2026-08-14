@@ -8,7 +8,9 @@ use App\Policies\RolePolicy;
 use App\Policies\UserPolicy;
 use App\Search\EloquentSearchEngine;
 use App\Search\SearchEngine;
+use App\Support\SiteSettings;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,5 +32,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('permission', fn (User $user, string $permission) => $user->hasPermission($permission));
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
+
+        $siteSettings = app(SiteSettings::class);
+        View::share('siteSettings', $siteSettings);
+        config(['app.name' => $siteSettings->siteName()]);
     }
 }

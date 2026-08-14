@@ -9,7 +9,25 @@
     $videoId = $item->meta['video_id'] ?? null;
     $trail = [['الرئيسية', route('home')], ['قرآنيات', route('quraniyat.index')], [$item->title, null]];
     $ogImage = $item->coverImage()?->url();
+    $isArticleType = in_array($item->type, ['article', 'khatira', 'fawaid'], true);
+    $ogType = $isArticleType ? 'article' : 'website';
 @endphp
+
+@if($isArticleType)
+    @push('json-ld')
+    <script type="application/ld+json">{!! json_encode(array_filter([
+        '@@context' => 'https://schema.org',
+        '@type' => 'Article',
+        'headline' => $item->title,
+        'url' => route('quraniyat.show', $item->slug),
+        'description' => $item->excerpt,
+        'image' => $ogImage,
+        'datePublished' => $item->published_at?->toIso8601String(),
+        'dateModified' => $item->updated_at?->toIso8601String(),
+        'inLanguage' => 'ar',
+    ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    @endpush
+@endif
 
 @section('public-content')
 <main class="mx-auto max-w-3xl px-5 py-12">
@@ -25,7 +43,7 @@
     @if($item->type === 'video' && $videoId)
         @include('partials.youtube-embed', ['videoId' => $videoId, 'class' => 'mt-6 aspect-video overflow-hidden rounded-2xl bg-black'])
     @elseif($cover = $item->coverImage())
-        <img src="{{ $cover->url() }}" alt="{{ $item->title }}" class="mt-6 w-full rounded-2xl object-cover">
+        <img src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="mt-6 w-full rounded-2xl object-cover">
     @endif
 
     @if($item->excerpt)<p class="mt-6 text-lg leading-8 text-slate-700">{{ $item->excerpt }}</p>@endif

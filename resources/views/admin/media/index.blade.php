@@ -23,17 +23,17 @@
         <form method="POST" action="{{ route('admin.media.store') }}" enctype="multipart/form-data" class="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
             @csrf
             <div class="min-w-[260px] flex-1">
-                <label class="block text-xs font-medium text-slate-500">رفع صور أو ملفات PDF جديدة (يمكن اختيار أكثر من ملف)</label>
-                <input type="file" name="files[]" multiple accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,image/avif,application/pdf" required class="mt-1 w-full rounded border-slate-300 text-sm">
+                <label for="field-files" class="block text-xs font-medium text-slate-500">رفع صور أو ملفات PDF جديدة (يمكن اختيار أكثر من ملف)</label>
+                <input type="file" id="field-files" name="files[]" multiple accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,image/avif,application/pdf" required class="mt-1 w-full rounded border-slate-300 text-sm">
             </div>
             <button class="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-medium text-white">رفع</button>
         </form>
     @endcan
 
     <form method="GET" class="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
-        <div class="min-w-[220px] flex-1"><label class="block text-xs font-medium text-slate-500">بحث</label><input type="text" name="q" value="{{ request('q') }}" placeholder="ابحث بالاسم أو النص البديل أو الوصف" class="mt-1 w-full rounded border-slate-300"></div>
-        <div><label class="block text-xs font-medium text-slate-500">النوع</label>
-            <select name="type" class="mt-1 rounded border-slate-300">
+        <div class="min-w-[220px] flex-1"><label for="field-q" class="block text-xs font-medium text-slate-500">بحث</label><input type="text" id="field-q" name="q" value="{{ request('q') }}" placeholder="ابحث بالاسم أو النص البديل أو الوصف" class="mt-1 w-full rounded border-slate-300"></div>
+        <div><label for="field-type" class="block text-xs font-medium text-slate-500">النوع</label>
+            <select id="field-type" name="type" class="mt-1 rounded border-slate-300">
                 <option value="">الكل</option>
                 <option value="image" @selected(request('type') === 'image')>صور</option>
                 <option value="pdf" @selected(request('type') === 'pdf')>ملفات PDF</option>
@@ -53,7 +53,7 @@
                     </a>
                 @else
                     <div class="aspect-square bg-slate-100">
-                        <img src="{{ $item->webpUrl() ?? $item->url() }}" alt="{{ $item->alt_text }}" loading="lazy" class="h-full w-full object-cover">
+                        <img src="{{ $item->displayUrl() }}" alt="{{ $item->alt_text }}" loading="lazy" class="h-full w-full object-cover">
                     </div>
                 @endif
                 <div class="space-y-1 p-3 text-xs text-slate-500">
@@ -94,12 +94,12 @@
                         <form method="POST" action="{{ route('admin.media.update', $item) }}" class="space-y-2 border-t border-slate-100 p-3">
                             @csrf @method('PUT')
                             <div>
-                                <label class="block text-[11px] font-medium text-slate-500">النص البديل (Alt)</label>
-                                <input type="text" name="alt_text" value="{{ $item->alt_text }}" class="mt-0.5 w-full rounded border-slate-300 text-xs">
+                                <label for="field-alt_text" class="block text-[11px] font-medium text-slate-500">النص البديل (Alt)</label>
+                                <input type="text" id="field-alt_text" name="alt_text" value="{{ $item->alt_text }}" class="mt-0.5 w-full rounded border-slate-300 text-xs">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-medium text-slate-500">تعليق (Caption)</label>
-                                <input type="text" name="caption" value="{{ $item->caption }}" class="mt-0.5 w-full rounded border-slate-300 text-xs">
+                                <label for="field-caption" class="block text-[11px] font-medium text-slate-500">تعليق (Caption)</label>
+                                <input type="text" id="field-caption" name="caption" value="{{ $item->caption }}" class="mt-0.5 w-full rounded border-slate-300 text-xs">
                             </div>
                             <button class="w-full rounded-lg bg-slate-800 py-1.5 text-xs font-medium text-white">حفظ</button>
                         </form>

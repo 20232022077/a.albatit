@@ -24,7 +24,7 @@
         @forelse($items as $item)
             <a href="{{ route('quraniyat.show', $item->slug) }}" class="block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                 @if($cover = $item->coverImage())
-                    <img src="{{ $cover->url() }}" alt="{{ $item->title }}" class="h-40 w-full object-cover">
+                    <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-40 w-full object-cover">
                 @else
                     <div class="grid h-40 w-full place-items-center bg-emerald-50 text-4xl text-emerald-700">۞</div>
                 @endif

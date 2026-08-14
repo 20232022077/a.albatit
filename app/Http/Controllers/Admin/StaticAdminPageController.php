@@ -12,7 +12,6 @@ class StaticAdminPageController extends Controller
         'content' => ['title' => 'إدارة المحتوى', 'description' => 'ستظهر هنا أدوات إدارة محتوى المنصة عند إضافة وحدات المحتوى في المهام القادمة.', 'permission' => 'content.view'],
         'categories' => ['title' => 'التصنيفات', 'description' => 'إدارة تصنيفات المحتوى وتنظيمها هرميًا.', 'permission' => 'content.view'],
         'tags' => ['title' => 'الوسوم', 'description' => 'إدارة الوسوم وإعادة استخدامها عبر المحتوى.', 'permission' => 'content.view'],
-        'settings' => ['title' => 'إعدادات الموقع', 'description' => 'إعدادات المنصة العامة ستظهر هنا.', 'permission' => 'settings.manage'],
         'activity-logs' => ['title' => 'سجل العمليات', 'description' => 'سجل الأحداث والعمليات الإدارية سيظهر هنا.', 'permission' => 'activity_logs.view'],
         'backups' => ['title' => 'النسخ الاحتياطية', 'description' => 'إدارة النسخ الاحتياطية ستكون متاحة هنا.', 'permission' => 'backups.manage'],
     ];

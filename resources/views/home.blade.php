@@ -1,5 +1,25 @@
 @extends('layouts.public')
 
+@php
+    $typeLabels = ['book' => 'كتاب', 'lecture' => 'محاضرة', 'program' => 'برنامج', 'program_episode' => 'حلقة برنامج', 'reflection' => 'تأمل', 'wall_post' => 'حائط'];
+    $title = config('app.name');
+    $canonicalUrl = route('home');
+@endphp
+
+@push('json-ld')
+<script type="application/ld+json">{!! json_encode([
+    '@@context' => 'https://schema.org',
+    '@type' => 'WebSite',
+    'name' => config('app.name'),
+    'url' => route('home'),
+    'potentialAction' => [
+        '@type' => 'SearchAction',
+        'target' => route('search') . '?q={search_term_string}',
+        'query-input' => 'required name=search_term_string',
+    ],
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
+
 @section('public-content')
 <main>
     <section class="relative overflow-hidden bg-gradient-to-bl from-emerald-950 via-emerald-900 to-teal-900 text-white">
@@ -7,14 +27,14 @@
         <div class="pointer-events-none absolute -bottom-40 right-0 h-[28rem] w-[28rem] rounded-full bg-amber-400/10 blur-3xl"></div>
         <div class="pointer-events-none absolute inset-0 opacity-[0.04]" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:26px 26px"></div>
 
-        <div class="relative mx-auto grid max-w-7xl gap-12 px-5 py-24 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-32">
-            <div>
+        <div class="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:gap-12 sm:px-5 sm:py-24 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-32">
+            <div class="min-w-0">
                 <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold text-emerald-100 ring-1 ring-white/20">۞ منصة معرفة وإلهام</span>
-                <h1 class="mt-6 text-5xl font-extrabold leading-[1.1] tracking-tight sm:text-6xl">محتوى إسلامي أصيل<br><span class="bg-gradient-to-l from-amber-300 to-emerald-300 bg-clip-text text-transparent">يقرّب العلم إلى الحياة</span></h1>
-                <p class="mt-6 max-w-xl text-lg leading-8 text-emerald-100/90">مكتبة متكاملة للكتب والمحاضرات والبرامج والتأملات ومحتوى القرآن الكريم.</p>
-                <form action="{{ route('search') }}" class="mt-9 flex max-w-lg rounded-2xl bg-white p-2 shadow-xl">
+                <h1 class="mt-6 text-3xl font-extrabold leading-[1.2] tracking-tight sm:text-5xl sm:leading-[1.1] lg:text-6xl">محتوى إسلامي أصيل<br><span class="bg-gradient-to-l from-amber-300 to-emerald-300 bg-clip-text text-transparent">يقرّب العلم إلى الحياة</span></h1>
+                <p class="mt-6 max-w-xl text-base leading-7 text-emerald-100/90 sm:text-lg sm:leading-8">مكتبة متكاملة للكتب والمحاضرات والبرامج والتأملات ومحتوى القرآن الكريم.</p>
+                <form action="{{ route('search') }}" class="mt-8 flex max-w-lg rounded-2xl bg-white p-2 shadow-xl focus-within:ring-2 focus-within:ring-emerald-300 focus-within:ring-offset-2 focus-within:ring-offset-emerald-950 sm:mt-9">
                     <input name="q" type="search" placeholder="ابحث في المحتوى..." class="min-w-0 flex-1 border-0 bg-transparent px-4 text-slate-900 placeholder:text-slate-400 focus:ring-0">
-                    <button class="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-700">بحث</button>
+                    <button class="shrink-0 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 sm:px-6">بحث</button>
                 </form>
             </div>
             <div class="hidden items-center justify-center lg:flex">
@@ -51,11 +71,11 @@
         </div>
         <div class="mt-8 grid gap-6 md:grid-cols-3">
             @forelse($featured as $item)
-                <article class="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-                    <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{{ $item->type }}</span>
+                <a href="{{ \App\Support\ContentUrl::for($item) }}" class="block rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                    <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{{ $typeLabels[$item->type] ?? $item->type }}</span>
                     <h3 class="mt-4 text-xl font-bold">{{ $item->title }}</h3>
                     <p class="mt-3 line-clamp-3 text-sm leading-7 text-slate-600">{{ $item->excerpt }}</p>
-                </article>
+                </a>
             @empty
                 <p class="col-span-full rounded-2xl bg-slate-100 p-8 text-center text-slate-500">سيظهر المحتوى المميز هنا عند نشره من لوحة التحكم.</p>
             @endforelse
@@ -81,11 +101,16 @@
                 <h2 class="text-3xl font-extrabold tracking-tight">{{ $sectionTitle }}</h2>
                 <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     @forelse($$key as $item)
-                        <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                        @php
+                            $itemUrl = in_array($id, ['quran-centrality', 'quraniyat'], true)
+                                ? route($id.'.show', $item->slug)
+                                : \App\Support\ContentUrl::for($item);
+                        @endphp
+                        <a href="{{ $itemUrl }}" class="block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                             <p class="text-xs font-bold text-emerald-700">{{ $item->published_at?->translatedFormat('j M Y') }}</p>
                             <h3 class="mt-3 text-lg font-bold">{{ $item->title }}</h3>
                             <p class="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">{{ $item->excerpt ?: \Illuminate\Support\Str::limit((string) $item->body, 100) }}</p>
-                        </article>
+                        </a>
                     @empty
                         <p class="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا يوجد محتوى منشور في هذا القسم حاليًا.</p>
                     @endforelse

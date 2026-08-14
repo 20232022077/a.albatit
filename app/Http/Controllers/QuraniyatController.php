@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ResolvesContentSlug;
 use App\Models\ContentItem;
+use App\Support\SiteSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ class QuraniyatController extends Controller
             ->search($request->string('q')->toString() ?: null)
             ->orderBy('sort_order')
             ->latest('published_at')
-            ->paginate(12)
+            ->paginate(app(SiteSettings::class)->itemsPerPage())
             ->withQueryString();
 
         return view('quraniyat.index', [
