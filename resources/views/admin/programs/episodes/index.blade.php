@@ -46,6 +46,8 @@
                                 <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">محذوف</span>
                             @elseif($episode->status === 'published')
                                 <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">منشور</span>
+                            @elseif($episode->status === 'unpublished')
+                                <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">غير منشور</span>
                             @else
                                 <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">مسودة</span>
                             @endif

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ContentStatus;
+use App\Support\SafeYoutube;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -21,7 +23,7 @@ class StoreQuranCentralityItemRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('content_items', 'slug')],
             'excerpt' => ['nullable', 'string', 'max:1000'],
             'body' => ['nullable', 'string'],
-            'status' => ['required', 'in:draft,published'],
+            'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],
@@ -44,8 +46,13 @@ class StoreQuranCentralityItemRequest extends FormRequest
                 $validator->errors()->add('attachment', 'يجب رفع ملف PDF لهذا النوع من المحتوى.');
             }
 
-            if ($this->input('type') === 'video' && ! $this->hasFile('attachment') && blank($this->input('video_url'))) {
-                $validator->errors()->add('video_url', 'يجب إدخال رابط الفيديو أو رفع ملف فيديو.');
+            if ($this->input('type') === 'video') {
+                $url = $this->input('video_url');
+                if (! $this->hasFile('attachment') && blank($url)) {
+                    $validator->errors()->add('video_url', 'يجب إدخال رابط الفيديو أو رفع ملف فيديو.');
+                } elseif (filled($url) && ! SafeYoutube::isValid($url)) {
+                    $validator->errors()->add('video_url', 'يجب إدخال رابط فيديو يوتيوب صحيح.');
+                }
             }
         });
     }

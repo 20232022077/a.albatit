@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ContentStatus;
+use App\Support\SafeYoutube;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,7 +25,7 @@ class UpdateQuraniyatItemRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('content_items', 'slug')->ignore($item)],
             'excerpt' => ['nullable', 'string', 'max:1000'],
             'body' => ['required', 'string'],
-            'status' => ['required', 'in:draft,published'],
+            'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],
@@ -42,11 +44,8 @@ class UpdateQuraniyatItemRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            if ($this->input('type') === 'video' && filled($this->input('video_url'))) {
-                $host = parse_url((string) $this->input('video_url'), PHP_URL_HOST);
-                if (! $host || ! preg_match('/(^|\.)(youtube\.com|youtu\.be)$/i', $host)) {
-                    $validator->errors()->add('video_url', 'يجب إدخال رابط فيديو يوتيوب صحيح.');
-                }
+            if ($this->input('type') === 'video' && ! SafeYoutube::isValid($this->input('video_url'))) {
+                $validator->errors()->add('video_url', 'يجب إدخال رابط فيديو يوتيوب صحيح.');
             }
         });
     }

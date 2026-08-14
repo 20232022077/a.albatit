@@ -25,7 +25,7 @@
 
     <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @forelse($items as $item)
-            <a href="{{ route('books.show', $item) }}" class="block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+            <a href="{{ route('books.show', $item->slug) }}" class="block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                 @if($item->book?->cover)
                     <img src="{{ $item->book->cover->url() }}" alt="{{ $item->title }}" class="h-56 w-full object-cover">
                 @else

@@ -17,34 +17,47 @@ class RoleController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', Role::class);
+
         return view('admin.roles.index', ['roles' => Role::withCount('users')->orderBy('display_name')->get()]);
     }
 
     public function create(): View
     {
         $this->authorize('create', Role::class);
-        return view('admin.roles.form', ['role' => new Role(), 'permissions' => Permission::orderBy('name')->get()]);
+
+        return view('admin.roles.form', ['role' => new Role, 'permissions' => Permission::orderBy('name')->get()]);
     }
 
     public function store(StoreRoleRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $role = DB::transaction(function () use ($data) { $role = Role::create(Arr::except($data, 'permission_ids')); $role->permissions()->sync($data['permission_ids'] ?? []); return $role; });
+        $role = DB::transaction(function () use ($data) {
+            $role = Role::create(Arr::except($data, 'permission_ids'));
+            $role->permissions()->sync($data['permission_ids'] ?? []);
+
+            return $role;
+        });
         $this->record('roles.created', $role);
+
         return redirect()->route('admin.roles.index')->with('status', 'تم إنشاء الدور.');
     }
 
     public function edit(Role $role): View
     {
         $this->authorize('update', $role);
+
         return view('admin.roles.form', ['role' => $role->load('permissions'), 'permissions' => Permission::orderBy('name')->get()]);
     }
 
     public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
         $data = $request->validated();
-        DB::transaction(function () use ($data, $role) { $role->update(Arr::except($data, 'permission_ids')); $role->permissions()->sync($data['permission_ids'] ?? []); });
+        DB::transaction(function () use ($data, $role) {
+            $role->update(Arr::except($data, 'permission_ids'));
+            $role->permissions()->sync($data['permission_ids'] ?? []);
+        });
         $this->record('roles.updated', $role);
+
         return redirect()->route('admin.roles.index')->with('status', 'تم تحديث الدور وصلاحياته.');
     }
 
@@ -53,6 +66,7 @@ class RoleController extends Controller
         $this->authorize('delete', $role);
         $this->record('roles.deleted', $role);
         $role->delete();
+
         return redirect()->route('admin.roles.index')->with('status', 'تم حذف الدور.');
     }
 

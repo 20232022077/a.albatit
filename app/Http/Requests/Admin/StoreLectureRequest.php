@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ContentStatus;
+use App\Support\SafeYoutube;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,7 +26,7 @@ class StoreLectureRequest extends FormRequest
             'speaker' => ['nullable', 'string', 'max:255'],
             'delivered_at' => ['nullable', 'date'],
             'venue' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:draft,published'],
+            'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],
@@ -41,8 +43,7 @@ class StoreLectureRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $host = parse_url((string) $this->input('video_url'), PHP_URL_HOST);
-            if (! $host || ! preg_match('/(^|\.)(youtube\.com|youtu\.be)$/i', $host)) {
+            if (! SafeYoutube::isValid($this->input('video_url'))) {
                 $validator->errors()->add('video_url', 'يجب إدخال رابط فيديو يوتيوب صحيح.');
             }
         });

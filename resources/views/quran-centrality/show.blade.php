@@ -6,11 +6,14 @@
     $title = ($seo['title'] ?? $item->title) . ' - ' . config('app.name');
     $metaDescription = $seo['description'] ?? $item->excerpt;
     $attachment = $item->attachment();
+    $videoId = $item->meta['video_id'] ?? null;
+    $trail = [['الرئيسية', route('home')], ['مركزية القرآن', route('quran-centrality.index')], [$item->title, null]];
+    $ogImage = $item->coverImage()?->url();
 @endphp
 
 @section('public-content')
 <main class="mx-auto max-w-3xl px-5 py-12">
-    <a href="{{ route('quran-centrality.index') }}" class="text-sm font-semibold text-emerald-700">← مركزية القرآن</a>
+    @include('partials.breadcrumbs')
 
     <span class="mt-6 inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">{{ $typeLabels[$item->type] ?? $item->type }}</span>
     <h1 class="mt-3 text-3xl font-bold">{{ $item->title }}</h1>
@@ -30,8 +33,8 @@
             @if($attachment && str_starts_with($attachment->mime_type, 'video'))
                 <video controls class="w-full rounded-xl bg-black"><source src="{{ $attachment->url() }}" type="{{ $attachment->mime_type }}"></video>
             @endif
-            @if($videoUrl = $item->meta['video_url'] ?? null)
-                <a href="{{ $videoUrl }}" target="_blank" rel="noopener" class="inline-flex rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white">مشاهدة الفيديو</a>
+            @if($videoId)
+                @include('partials.youtube-embed', ['videoId' => $videoId, 'class' => 'aspect-video overflow-hidden rounded-xl bg-black'])
             @endif
         </div>
     @elseif($item->type === 'pdf' && $attachment)

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin\Concerns;
 
 use App\Models\ContentItem;
+use App\Models\ContentItemSlug;
 use App\Models\Media;
 use App\Models\Tag;
 use App\Support\SafeFileUpload;
+use App\Support\SafeYoutube;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -21,9 +23,25 @@ trait ManagesContentItems
         $slug = $base;
         $suffix = 2;
 
-        while (ContentItem::withTrashed()->where('slug', $slug)->when($ignore, fn (Builder $q) => $q->whereKeyNot($ignore->id))->exists()) {
+        $collides = function (string $candidate) use ($ignore) {
+            $inUse = ContentItem::withTrashed()->where('slug', $candidate)
+                ->when($ignore, fn (Builder $q) => $q->whereKeyNot($ignore->id))
+                ->exists();
+
+            $wasUsed = ContentItemSlug::where('slug', $candidate)
+                ->when($ignore, fn (Builder $q) => $q->where('content_item_id', '!=', $ignore->id))
+                ->exists();
+
+            return $inUse || $wasUsed;
+        };
+
+        while ($collides($slug)) {
             $slug = "{$base}-{$suffix}";
             $suffix++;
+        }
+
+        if ($ignore && filled($ignore->slug) && $ignore->slug !== $slug) {
+            ContentItemSlug::firstOrCreate(['content_item_id' => $ignore->id, 'slug' => $ignore->slug]);
         }
 
         return $slug;
@@ -40,8 +58,12 @@ trait ManagesContentItems
 
     protected function resolvePublishedAt(string $status, ?string $input, ?Carbon $existing): ?Carbon
     {
-        if ($status !== 'published') {
+        if ($status === 'draft') {
             return null;
+        }
+
+        if ($status === 'unpublished') {
+            return $existing;
         }
 
         return filled($input) ? Carbon::parse($input) : ($existing ?? now());
@@ -57,6 +79,23 @@ trait ManagesContentItems
                 'keywords' => $data['seo_keywords'] ?? null,
             ]),
         ], fn ($value) => $value !== null && $value !== []);
+    }
+
+    /**
+     * The FormRequest already rejected any video_url that doesn't resolve to
+     * a valid YouTube video ID, so this just re-derives that same ID for
+     * storage. The stored video_id (not the raw URL) is what every embed is
+     * built from — the URL is kept only for prefilling the admin form.
+     */
+    protected function resolveYoutubeMeta(?string $url): array
+    {
+        if (blank($url)) {
+            return [];
+        }
+
+        $videoId = SafeYoutube::extractVideoId($url);
+
+        return $videoId ? ['video_url' => $url, 'video_id' => $videoId] : [];
     }
 
     protected function syncTags(ContentItem $item, string $tagsInput): void

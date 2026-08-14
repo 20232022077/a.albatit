@@ -17,13 +17,15 @@ class UserController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', User::class);
+
         return view('admin.users.index', ['users' => User::with('roles')->latest()->paginate(20)]);
     }
 
     public function create(): View
     {
         $this->authorize('create', User::class);
-        return view('admin.users.form', ['user' => new User(), 'roles' => Role::orderBy('display_name')->get()]);
+
+        return view('admin.users.form', ['user' => new User, 'roles' => Role::orderBy('display_name')->get()]);
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
@@ -32,15 +34,18 @@ class UserController extends Controller
         $user = DB::transaction(function () use ($data) {
             $user = User::create(Arr::except($data, 'role_ids'));
             $user->roles()->sync($data['role_ids'] ?? []);
+
             return $user;
         });
         $this->record('users.created', $user);
+
         return redirect()->route('admin.users.index')->with('status', 'تم إنشاء المستخدم.');
     }
 
     public function edit(User $user): View
     {
         $this->authorize('update', $user);
+
         return view('admin.users.form', ['user' => $user->load('roles'), 'roles' => Role::orderBy('display_name')->get()]);
     }
 
@@ -49,10 +54,13 @@ class UserController extends Controller
         $data = $request->validated();
         DB::transaction(function () use ($data, $user) {
             $user->update(Arr::except($data, ['role_ids', 'password']));
-            if (filled($data['password'] ?? null)) $user->update(['password' => $data['password']]);
+            if (filled($data['password'] ?? null)) {
+                $user->update(['password' => $data['password']]);
+            }
             $user->roles()->sync($data['role_ids'] ?? []);
         });
         $this->record('users.updated', $user);
+
         return redirect()->route('admin.users.index')->with('status', 'تم تحديث المستخدم.');
     }
 
@@ -61,6 +69,7 @@ class UserController extends Controller
         $this->authorize('delete', $user);
         $this->record('users.deleted', $user);
         $user->delete();
+
         return redirect()->route('admin.users.index')->with('status', 'تم حذف المستخدم ويمكن استعادته لاحقًا.');
     }
 

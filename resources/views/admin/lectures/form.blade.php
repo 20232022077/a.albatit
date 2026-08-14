@@ -74,6 +74,7 @@
                 <select name="status" class="mt-1 w-full rounded border-slate-300">
                     <option value="draft" @selected(old('status', $item->status) === 'draft')>مسودة</option>
                     <option value="published" @selected(old('status', $item->status) === 'published')>منشور</option>
+                    <option value="unpublished" @selected(old('status', $item->status) === 'unpublished')>غير منشور</option>
                 </select>
                 @error('status')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
             </div>

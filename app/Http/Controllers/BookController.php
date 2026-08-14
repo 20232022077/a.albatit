@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ResolvesContentSlug;
 use App\Models\Category;
 use App\Models\ContentItem;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class BookController extends Controller
 {
+    use ResolvesContentSlug;
+
     private const SORTS = [
         'newest' => ['published_at', 'desc'],
         'oldest' => ['published_at', 'asc'],
@@ -23,7 +27,7 @@ class BookController extends Controller
 
         $items = ContentItem::published()
             ->ofType('book')
-            ->with(['book', 'categories'])
+            ->with(['book.cover', 'categories'])
             ->when($request->filled('category_id'), fn (Builder $q) => $q->whereHas(
                 'categories', fn (Builder $c) => $c->where('categories.id', $request->integer('category_id'))
             ))
@@ -40,11 +44,18 @@ class BookController extends Controller
         ]);
     }
 
-    public function show(ContentItem $item): View
+    public function show(string $slug): View|RedirectResponse
     {
-        $item->load(['book', 'categories', 'tags']);
-        abort_unless($item->type === 'book' && $item->status === 'published', 404);
+        $result = $this->resolveBySlugOrRedirect(
+            fn () => ContentItem::published()->ofType('book')->with(['book.cover', 'book.pdf', 'categories', 'tags']),
+            $slug,
+            'books.show'
+        );
 
-        return view('books.show', ['item' => $item]);
+        if ($result instanceof RedirectResponse) {
+            return $result;
+        }
+
+        return view('books.show', ['item' => $result]);
     }
 }

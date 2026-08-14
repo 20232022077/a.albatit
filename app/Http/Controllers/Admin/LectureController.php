@@ -76,7 +76,7 @@ class LectureController extends Controller
                 'is_featured' => $request->boolean('is_featured'),
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, null),
-                'meta' => $this->buildSeoMeta($data, ['video_url' => $data['video_url']]),
+                'meta' => $this->buildSeoMeta($data, $this->resolveYoutubeMeta($data['video_url'])),
             ]);
 
             Lecture::create([
@@ -125,7 +125,7 @@ class LectureController extends Controller
                 'is_featured' => $request->boolean('is_featured'),
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, $item->published_at),
-                'meta' => $this->buildSeoMeta($data, ['video_url' => $data['video_url']]),
+                'meta' => $this->buildSeoMeta($data, $this->resolveYoutubeMeta($data['video_url'])),
             ]);
 
             $lecture = $item->lecture ?? Lecture::create(['content_item_id' => $item->id]);
@@ -176,7 +176,7 @@ class LectureController extends Controller
     public function unpublish(ContentItem $item): RedirectResponse
     {
         $this->authorizeLectureItem($item);
-        $item->update(['status' => 'draft']);
+        $item->update(['status' => 'unpublished']);
         $this->recordActivity('lectures.unpublished', $item);
 
         return back()->with('status', 'تم إلغاء نشر المحاضرة.');

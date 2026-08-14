@@ -188,7 +188,7 @@ class ProgramController extends Controller
     public function unpublish(ContentItem $item): RedirectResponse
     {
         $this->authorizeProgramItem($item);
-        $item->update(['status' => 'draft']);
+        $item->update(['status' => 'unpublished']);
         $this->recordActivity('programs.unpublished', $item);
 
         return back()->with('status', 'تم إلغاء نشر البرنامج.');

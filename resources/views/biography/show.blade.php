@@ -62,7 +62,7 @@
             <div class="flex items-center gap-3"><span class="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-xl">📖</span><h2 class="text-2xl font-extrabold">الكتب التي ألّفها</h2></div>
             <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach($books as $item)
-                    <a href="{{ route('books.show', $item) }}" class="group block overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                    <a href="{{ route('books.show', $item->slug) }}" class="group block overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                         @if($item->book?->cover)
                             <img src="{{ $item->book->cover->url() }}" alt="{{ $item->title }}" class="h-52 w-full object-cover transition duration-300 group-hover:scale-105">
                         @else

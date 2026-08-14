@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\ContentItem;
+use App\Search\SearchEngine;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -24,10 +25,10 @@ class HomeController extends Controller
         ]);
     }
 
-    public function search(Request $request): View
+    public function search(Request $request, SearchEngine $engine): View
     {
         $query = trim((string) $request->input('q'));
-        $items = ContentItem::published()->search($query ?: null)->latest('published_at')->paginate(12)->withQueryString();
+        $items = $engine->search($query ?: null);
 
         return view('search', compact('query', 'items'));
     }

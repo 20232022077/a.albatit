@@ -70,7 +70,7 @@ class WallPostController extends Controller
                 'is_featured' => $request->boolean('is_featured'),
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, null),
-                'meta' => array_filter(['video_url' => $data['video_url'] ?? null]),
+                'meta' => $this->resolveYoutubeMeta($data['video_url'] ?? null),
             ]);
 
             WallPost::create([
@@ -112,7 +112,7 @@ class WallPostController extends Controller
                 'is_featured' => $request->boolean('is_featured'),
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, $item->published_at),
-                'meta' => array_filter(['video_url' => $data['video_url'] ?? null]),
+                'meta' => $this->resolveYoutubeMeta($data['video_url'] ?? null),
             ]);
 
             $wallPost = $item->wallPost ?? WallPost::create(['content_item_id' => $item->id]);
@@ -157,7 +157,7 @@ class WallPostController extends Controller
     public function unpublish(ContentItem $item): RedirectResponse
     {
         $this->authorizeWallItem($item);
-        $item->update(['status' => 'draft']);
+        $item->update(['status' => 'unpublished']);
         $this->recordActivity('wall_posts.unpublished', $item);
 
         return back()->with('status', 'تم إلغاء نشر المنشور.');

@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ResolvesContentSlug;
 use App\Models\ContentItem;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class QuranCentralityController extends Controller
 {
+    use ResolvesContentSlug;
+
     private const SECTION_CATEGORY_SLUG = 'quran-centrality';
 
     public function index(Request $request): View
@@ -30,11 +34,18 @@ class QuranCentralityController extends Controller
         ]);
     }
 
-    public function show(ContentItem $item): View
+    public function show(string $slug): View|RedirectResponse
     {
-        $item->load(['categories', 'tags', 'media']);
-        abort_unless($item->status === 'published' && $item->categories->contains('slug', self::SECTION_CATEGORY_SLUG), 404);
+        $result = $this->resolveBySlugOrRedirect(
+            fn () => ContentItem::published()->inCategory(self::SECTION_CATEGORY_SLUG)->with(['categories', 'tags', 'media']),
+            $slug,
+            'quran-centrality.show'
+        );
 
-        return view('quran-centrality.show', ['item' => $item]);
+        if ($result instanceof RedirectResponse) {
+            return $result;
+        }
+
+        return view('quran-centrality.show', ['item' => $result]);
     }
 }

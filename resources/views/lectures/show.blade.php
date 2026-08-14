@@ -4,16 +4,14 @@
     $seo = $item->meta['seo'] ?? [];
     $title = ($seo['title'] ?? $item->title) . ' - ' . config('app.name');
     $metaDescription = $seo['description'] ?? $item->excerpt;
-    $videoUrl = $item->meta['video_url'] ?? null;
-    $embedUrl = null;
-    if ($videoUrl && preg_match('/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/', $videoUrl, $m)) {
-        $embedUrl = 'https://www.youtube.com/embed/' . $m[1];
-    }
+    $videoId = $item->meta['video_id'] ?? null;
+    $trail = [['الرئيسية', route('home')], ['المحاضرات', route('lectures.index')], [$item->title, null]];
+    $ogImage = $item->coverImage()?->url();
 @endphp
 
 @section('public-content')
 <main class="mx-auto max-w-3xl px-5 py-12">
-    <a href="{{ route('lectures.index') }}" class="text-sm font-semibold text-emerald-700">← المحاضرات</a>
+    @include('partials.breadcrumbs')
 
     <h1 class="mt-4 text-3xl font-bold">{{ $item->title }}</h1>
     <div class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-slate-500">
@@ -23,10 +21,8 @@
         @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
     </div>
 
-    @if($embedUrl)
-        <div class="mt-6 aspect-video overflow-hidden rounded-2xl bg-black">
-            <iframe src="{{ $embedUrl }}" class="h-full w-full" allowfullscreen loading="lazy"></iframe>
-        </div>
+    @if($videoId)
+        @include('partials.youtube-embed', ['videoId' => $videoId, 'class' => 'mt-6 aspect-video overflow-hidden rounded-2xl bg-black'])
     @elseif($cover = $item->coverImage())
         <img src="{{ $cover->url() }}" alt="{{ $item->title }}" class="mt-6 w-full rounded-2xl object-cover">
     @endif

@@ -5,11 +5,13 @@
     $title = ($seo['title'] ?? $item->title) . ' - ' . config('app.name');
     $metaDescription = $seo['description'] ?? $item->excerpt;
     $book = $item->book;
+    $trail = [['الرئيسية', route('home')], ['الكتب', route('books.index')], [$item->title, null]];
+    $ogImage = $book?->cover?->url();
 @endphp
 
 @section('public-content')
 <main class="mx-auto max-w-4xl px-5 py-12">
-    <a href="{{ route('books.index') }}" class="text-sm font-semibold text-emerald-700">← الكتب</a>
+    @include('partials.breadcrumbs')
 
     <div class="mt-6 grid gap-8 sm:grid-cols-3">
         <div class="sm:col-span-1">

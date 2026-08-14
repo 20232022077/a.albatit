@@ -68,6 +68,7 @@
                 <select name="status" class="mt-1 w-full rounded border-slate-300">
                     <option value="draft" @selected(old('status', $item->status) === 'draft')>مسودة</option>
                     <option value="published" @selected(old('status', $item->status) === 'published')>منشور</option>
+                    <option value="unpublished" @selected(old('status', $item->status) === 'unpublished')>غير منشور</option>
                 </select>
                 @error('status')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
             </div>
@@ -120,15 +121,16 @@
     </form>
 
     @if($item->exists)
+        @php($visibleEpisodes = $program->episodes->filter(fn ($episode) => $episode->contentItem !== null)->sortBy('episode_number'))
         <div class="mt-8 rounded-xl border border-slate-200 bg-white p-6">
             <div class="flex items-center justify-between">
-                <h2 class="text-lg font-bold">الحلقات ({{ $program->episodes->count() }})</h2>
+                <h2 class="text-lg font-bold">الحلقات ({{ $visibleEpisodes->count() }})</h2>
                 @can('permission', 'content.create')
                     <a href="{{ route('admin.programs.episodes.create', $item) }}" class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white">حلقة جديدة</a>
                 @endcan
             </div>
             <div class="mt-4 divide-y divide-slate-100">
-                @forelse($program->episodes->sortBy('episode_number') as $episode)
+                @forelse($visibleEpisodes as $episode)
                     <div class="flex items-center justify-between py-3 text-sm">
                         <span>الحلقة {{ $episode->episode_number }} — {{ $episode->contentItem->title }}</span>
                         <a href="{{ route('admin.programs.episodes.edit', [$item, $episode->contentItem]) }}" class="text-emerald-700">تعديل</a>

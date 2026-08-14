@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ContentStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,7 +25,7 @@ class UpdateProgramRequest extends FormRequest
             'presenter' => ['nullable', 'string', 'max:255'],
             'started_on' => ['nullable', 'date'],
             'ended_on' => ['nullable', 'date', 'after_or_equal:started_on'],
-            'status' => ['required', 'in:draft,published'],
+            'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],

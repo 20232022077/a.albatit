@@ -6,16 +6,14 @@
     $title = ($seo['title'] ?? $item->title) . ' - ' . config('app.name');
     $metaDescription = $seo['description'] ?? $item->excerpt;
     $attachment = $item->attachment();
-    $videoUrl = $item->meta['video_url'] ?? null;
-    $embedUrl = null;
-    if ($videoUrl && preg_match('/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/', $videoUrl, $m)) {
-        $embedUrl = 'https://www.youtube.com/embed/' . $m[1];
-    }
+    $videoId = $item->meta['video_id'] ?? null;
+    $trail = [['الرئيسية', route('home')], ['قرآنيات', route('quraniyat.index')], [$item->title, null]];
+    $ogImage = $item->coverImage()?->url();
 @endphp
 
 @section('public-content')
 <main class="mx-auto max-w-3xl px-5 py-12">
-    <a href="{{ route('quraniyat.index') }}" class="text-sm font-semibold text-emerald-700">← قرآنيات</a>
+    @include('partials.breadcrumbs')
 
     <span class="mt-6 inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">{{ $typeLabels[$item->type] ?? $item->type }}</span>
     <h1 class="mt-3 text-3xl font-bold">{{ $item->title }}</h1>
@@ -24,10 +22,8 @@
         @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
     </div>
 
-    @if($item->type === 'video' && $embedUrl)
-        <div class="mt-6 aspect-video overflow-hidden rounded-2xl bg-black">
-            <iframe src="{{ $embedUrl }}" class="h-full w-full" allowfullscreen loading="lazy"></iframe>
-        </div>
+    @if($item->type === 'video' && $videoId)
+        @include('partials.youtube-embed', ['videoId' => $videoId, 'class' => 'mt-6 aspect-video overflow-hidden rounded-2xl bg-black'])
     @elseif($cover = $item->coverImage())
         <img src="{{ $cover->url() }}" alt="{{ $item->title }}" class="mt-6 w-full rounded-2xl object-cover">
     @endif

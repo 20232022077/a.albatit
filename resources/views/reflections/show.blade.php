@@ -5,11 +5,13 @@
     $title = ($seo['title'] ?? $item->title) . ' - ' . config('app.name');
     $metaDescription = $seo['description'] ?? $item->excerpt;
     $reflection = $item->reflection;
+    $trail = [['الرئيسية', route('home')], ['تأملات', route('reflections.index')], [$item->title, null]];
+    $ogImage = $item->coverImage()?->url();
 @endphp
 
 @section('public-content')
 <main class="mx-auto max-w-3xl px-5 py-12">
-    <a href="{{ route('reflections.index') }}" class="text-sm font-semibold text-emerald-700">← التأملات</a>
+    @include('partials.breadcrumbs')
 
     <h1 class="mt-4 text-3xl font-bold">{{ $item->title }}</h1>
     <div class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-slate-500">

@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ContentStatus;
+use App\Support\SafeYoutube;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,7 +25,7 @@ class UpdateQuranCentralityItemRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('content_items', 'slug')->ignore($item)],
             'excerpt' => ['nullable', 'string', 'max:1000'],
             'body' => ['nullable', 'string'],
-            'status' => ['required', 'in:draft,published'],
+            'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],
@@ -36,5 +39,15 @@ class UpdateQuranCentralityItemRequest extends FormRequest
             'seo_description' => ['nullable', 'string', 'max:500'],
             'seo_keywords' => ['nullable', 'string', 'max:255'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $url = $this->input('video_url');
+            if ($this->input('type') === 'video' && filled($url) && ! SafeYoutube::isValid($url)) {
+                $validator->errors()->add('video_url', 'يجب إدخال رابط فيديو يوتيوب صحيح.');
+            }
+        });
     }
 }

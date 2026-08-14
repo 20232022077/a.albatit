@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ContentStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,7 +25,7 @@ class UpdateReflectionRequest extends FormRequest
             'surah_number' => ['nullable', 'integer', 'min:1', 'max:114'],
             'ayah_from' => ['nullable', 'integer', 'min:1'],
             'ayah_to' => ['nullable', 'integer', 'min:1', 'gte:ayah_from'],
-            'status' => ['required', 'in:draft,published'],
+            'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],

@@ -176,7 +176,7 @@ class ReflectionController extends Controller
     public function unpublish(ContentItem $item): RedirectResponse
     {
         $this->authorizeReflectionItem($item);
-        $item->update(['status' => 'draft']);
+        $item->update(['status' => 'unpublished']);
         $this->recordActivity('reflections.unpublished', $item);
 
         return back()->with('status', 'تم إلغاء نشر التأمل.');

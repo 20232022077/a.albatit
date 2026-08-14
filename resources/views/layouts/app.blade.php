@@ -8,6 +8,14 @@
         <title>{{ $title ?? config('app.name') }}</title>
         @isset($metaDescription)<meta name="description" content="{{ $metaDescription }}">@endisset
 
+        <link rel="canonical" href="{{ $canonicalUrl ?? url()->current() }}">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="{{ config('app.name') }}">
+        <meta property="og:title" content="{{ $title ?? config('app.name') }}">
+        <meta property="og:url" content="{{ $canonicalUrl ?? url()->current() }}">
+        @isset($metaDescription)<meta property="og:description" content="{{ $metaDescription }}">@endisset
+        @isset($ogImage)<meta property="og:image" content="{{ $ogImage }}">@endisset
+
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=tajawal:400,500,700,800,900" rel="stylesheet">
 

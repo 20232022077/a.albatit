@@ -16,7 +16,7 @@ class BiographyController extends Controller
         $books = ContentItem::published()
             ->ofType('book')
             ->whereHas('book', fn ($q) => $q->where('author_name', $biography->contentItem->title))
-            ->with('book', 'media')
+            ->with('book.cover', 'media')
             ->orderBy('sort_order')
             ->latest('published_at')
             ->get();

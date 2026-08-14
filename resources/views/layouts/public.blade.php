@@ -12,7 +12,7 @@
             <a href="{{ route('quran-centrality.index') }}" class="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">مركزية القرآن</a>
             <a href="{{ route('books.index') }}" class="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">الكتب</a>
             <a href="{{ route('quraniyat.index') }}" class="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">قرآنيات</a>
-            <a href="{{ route('home') }}#programs" class="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">البرامج</a>
+            <a href="{{ route('programs.index') }}" class="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">البرامج</a>
             <a href="{{ route('lectures.index') }}" class="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">المحاضرات</a>
             <a href="{{ route('reflections.index') }}" class="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">تأملات</a>
             <a href="{{ route('wall.index') }}" class="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white">حائط</a>
@@ -36,6 +36,7 @@
                 <a class="transition hover:text-white" href="{{ route('quran-centrality.index') }}">مركزية القرآن</a>
                 <a class="transition hover:text-white" href="{{ route('books.index') }}">الكتب</a>
                 <a class="transition hover:text-white" href="{{ route('quraniyat.index') }}">قرآنيات</a>
+                <a class="transition hover:text-white" href="{{ route('programs.index') }}">البرامج</a>
                 <a class="transition hover:text-white" href="{{ route('lectures.index') }}">المحاضرات</a>
                 <a class="transition hover:text-white" href="{{ route('reflections.index') }}">تأملات</a>
                 <a class="transition hover:text-white" href="{{ route('wall.index') }}">حائط</a>

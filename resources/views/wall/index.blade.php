@@ -17,13 +17,7 @@
 
     <div class="mt-8 space-y-5">
         @forelse($items as $item)
-            @php
-                $videoUrl = $item->meta['video_url'] ?? null;
-                $embedUrl = null;
-                if ($videoUrl && preg_match('/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/', $videoUrl, $m)) {
-                    $embedUrl = 'https://www.youtube.com/embed/' . $m[1];
-                }
-            @endphp
+            @php($videoId = $item->meta['video_id'] ?? null)
             <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="flex items-center gap-2">
                     @if($item->wallPost?->is_pinned)<span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">📌 مثبّت</span>@endif
@@ -33,10 +27,8 @@
                 @if($cover = $item->coverImage())
                     <img src="{{ $cover->url() }}" alt="" class="mt-4 w-full rounded-xl object-cover">
                 @endif
-                @if($embedUrl)
-                    <div class="mt-4 aspect-video overflow-hidden rounded-xl bg-black">
-                        <iframe src="{{ $embedUrl }}" class="h-full w-full" allowfullscreen loading="lazy"></iframe>
-                    </div>
+                @if($videoId)
+                    @include('partials.youtube-embed', ['videoId' => $videoId, 'class' => 'mt-4 aspect-video overflow-hidden rounded-xl bg-black'])
                 @endif
             </article>
         @empty

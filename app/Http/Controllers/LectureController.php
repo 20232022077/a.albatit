@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ResolvesContentSlug;
 use App\Models\Category;
 use App\Models\ContentItem;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class LectureController extends Controller
 {
+    use ResolvesContentSlug;
+
     private const SORTS = [
         'newest' => ['published_at', 'desc'],
         'oldest' => ['published_at', 'asc'],
@@ -40,11 +44,18 @@ class LectureController extends Controller
         ]);
     }
 
-    public function show(ContentItem $item): View
+    public function show(string $slug): View|RedirectResponse
     {
-        $item->load(['lecture', 'categories', 'tags', 'media']);
-        abort_unless($item->type === 'lecture' && $item->status === 'published', 404);
+        $result = $this->resolveBySlugOrRedirect(
+            fn () => ContentItem::published()->ofType('lecture')->with(['lecture', 'categories', 'tags', 'media']),
+            $slug,
+            'lectures.show'
+        );
 
-        return view('lectures.show', ['item' => $item]);
+        if ($result instanceof RedirectResponse) {
+            return $result;
+        }
+
+        return view('lectures.show', ['item' => $result]);
     }
 }

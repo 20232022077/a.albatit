@@ -64,7 +64,7 @@ class ProgramEpisodeController extends Controller
                 'status' => $data['status'],
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, null),
-                'meta' => $this->buildSeoMeta($data, ['video_url' => $data['video_url']]),
+                'meta' => $this->buildSeoMeta($data, $this->resolveYoutubeMeta($data['video_url'])),
             ]);
 
             ProgramEpisode::create([
@@ -108,7 +108,7 @@ class ProgramEpisodeController extends Controller
                 'status' => $data['status'],
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, $episode->published_at),
-                'meta' => $this->buildSeoMeta($data, ['video_url' => $data['video_url']]),
+                'meta' => $this->buildSeoMeta($data, $this->resolveYoutubeMeta($data['video_url'])),
             ]);
 
             $this->replaceMediaCollection($episode, $request->file('cover_image'), 'cover', 'program-episodes', $request->user()->id);
@@ -157,7 +157,7 @@ class ProgramEpisodeController extends Controller
     {
         $this->authorize('permission', 'content.update');
         $this->authorizeEpisode($program, $episode);
-        $episode->update(['status' => 'draft']);
+        $episode->update(['status' => 'unpublished']);
         $this->recordActivity('program_episodes.unpublished', $episode);
 
         return back()->with('status', 'تم إلغاء نشر الحلقة.');

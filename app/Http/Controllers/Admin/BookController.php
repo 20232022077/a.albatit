@@ -34,7 +34,7 @@ class BookController extends Controller
 
         $items = ContentItem::query()
             ->ofType('book')
-            ->with(['book', 'categories'])
+            ->with(['book.cover', 'categories'])
             ->when($request->boolean('trashed'), fn (Builder $q) => $q->onlyTrashed())
             ->when($request->filled('status'), fn (Builder $q) => $q->where('status', $request->string('status')->toString()))
             ->when($request->filled('category_id'), fn (Builder $q) => $q->whereHas(
@@ -186,7 +186,7 @@ class BookController extends Controller
     public function unpublish(ContentItem $item): RedirectResponse
     {
         $this->authorizeBookItem($item);
-        $item->update(['status' => 'draft']);
+        $item->update(['status' => 'unpublished']);
         $this->recordActivity('books.unpublished', $item);
 
         return back()->with('status', 'تم إلغاء نشر الكتاب.');
