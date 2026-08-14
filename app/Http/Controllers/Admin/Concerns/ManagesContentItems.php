@@ -6,12 +6,12 @@ use App\Models\ContentItem;
 use App\Models\ContentItemSlug;
 use App\Models\Media;
 use App\Models\Tag;
+use App\Support\ActivityLogger;
 use App\Support\SafeFileUpload;
 use App\Support\SafeYoutube;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -168,15 +168,6 @@ trait ManagesContentItems
 
     protected function recordActivity(string $event, ContentItem $item): void
     {
-        DB::table('activity_logs')->insert([
-            'user_id' => auth()->id(),
-            'event' => $event,
-            'subject_type' => ContentItem::class,
-            'subject_id' => $item->id,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'properties' => null,
-            'created_at' => now(),
-        ]);
+        ActivityLogger::log($event, $item, array_filter(['title' => $item->title, 'type' => $item->type, 'status' => $item->status]));
     }
 }

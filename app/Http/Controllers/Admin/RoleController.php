@@ -7,6 +7,8 @@ use App\Http\Requests\Admin\StoreRoleRequest;
 use App\Http\Requests\Admin\UpdateRoleRequest;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Support\ActivityLogger;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -31,9 +33,11 @@ class RoleController extends Controller
     public function store(StoreRoleRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $role = DB::transaction(function () use ($data) {
+        $permissionIds = $this->grantablePermissionIds($request, $data['permission_ids'] ?? []);
+
+        $role = DB::transaction(function () use ($data, $permissionIds) {
             $role = Role::create(Arr::except($data, 'permission_ids'));
-            $role->permissions()->sync($data['permission_ids'] ?? []);
+            $role->permissions()->sync($permissionIds);
 
             return $role;
         });
@@ -52,9 +56,11 @@ class RoleController extends Controller
     public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
         $data = $request->validated();
-        DB::transaction(function () use ($data, $role) {
+        $permissionIds = $this->grantablePermissionIds($request, $data['permission_ids'] ?? [], $role);
+
+        DB::transaction(function () use ($data, $role, $permissionIds) {
             $role->update(Arr::except($data, 'permission_ids'));
-            $role->permissions()->sync($data['permission_ids'] ?? []);
+            $role->permissions()->sync($permissionIds);
         });
         $this->record('roles.updated', $role);
 
@@ -70,8 +76,35 @@ class RoleController extends Controller
         return redirect()->route('admin.roles.index')->with('status', 'تم حذف الدور.');
     }
 
+    /**
+     * A role manager must never be able to grant a permission they don't
+     * themselves hold — otherwise "roles.create" + "roles.update" alone
+     * would let someone build a fresh role with every permission (i.e. a
+     * super-admin in every way that matters) and hand it to another
+     * account. Permissions outside the actor's own set are left untouched
+     * on the existing role rather than stripped, so opening the edit form
+     * and saving can't silently downgrade a role's privileges they can't see.
+     */
+    private function grantablePermissionIds(Request $request, array $requestedIds, ?Role $existingRole = null): array
+    {
+        $actor = $request->user();
+        if ($actor->hasRole('super-admin')) {
+            return $requestedIds;
+        }
+
+        $actorPermissionIds = $actor->roles()->with('permissions')->get()
+            ->pluck('permissions')->flatten()->pluck('id')->unique();
+
+        $granted = array_intersect($requestedIds, $actorPermissionIds->all());
+        $preserved = $existingRole
+            ? $existingRole->permissions()->pluck('permissions.id')->diff($actorPermissionIds)->all()
+            : [];
+
+        return array_values(array_unique([...$granted, ...$preserved]));
+    }
+
     private function record(string $event, Role $subject): void
     {
-        DB::table('activity_logs')->insert(['user_id' => auth()->id(), 'event' => $event, 'subject_type' => Role::class, 'subject_id' => $subject->id, 'ip_address' => request()->ip(), 'user_agent' => request()->userAgent(), 'properties' => null, 'created_at' => now()]);
+        ActivityLogger::log($event, $subject, ['name' => $subject->name, 'permissions' => $subject->permissions->pluck('name')->all()]);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\BiographyController;
 use App\Http\Controllers\Admin\BookController as AdminBookController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
@@ -59,7 +61,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::prefix('admin')->as('admin.')->group(function () {
@@ -67,6 +69,14 @@ Route::middleware('auth')->group(function () {
         Route::put('biography', [BiographyController::class, 'update'])->name('biography.update');
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+        Route::prefix('backups')->as('backups.')->group(function () {
+            Route::get('/', [BackupController::class, 'index'])->name('index');
+            Route::post('/', [BackupController::class, 'store'])->name('store');
+            Route::get('/{backup}/download', [BackupController::class, 'download'])->name('download');
+            Route::post('/{backup}/restore', [BackupController::class, 'restore'])->name('restore');
+            Route::delete('/{backup}', [BackupController::class, 'destroy'])->name('destroy');
+        });
         Route::resource('users', UserController::class)->except('show');
         Route::resource('roles', RoleController::class)->except('show');
         Route::prefix('quran-centrality')->as('quran-centrality.')->group(function () {
@@ -187,6 +197,6 @@ Route::middleware('auth')->group(function () {
             Route::post('/{id}/restore', [AdminMediaController::class, 'restore'])->name('restore');
             Route::delete('/{id}/force', [AdminMediaController::class, 'forceDestroy'])->name('force-destroy');
         });
-        Route::get('{section}', StaticAdminPageController::class)->whereIn('section', ['content', 'activity-logs', 'backups'])->name('section');
+        Route::get('{section}', StaticAdminPageController::class)->whereIn('section', ['content'])->name('section');
     });
 });

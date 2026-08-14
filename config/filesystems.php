@@ -51,6 +51,18 @@ return [
             'report' => false,
         ],
 
+        'backups' => [
+            'driver' => 'local',
+            'root' => storage_path('app/backups'),
+            // Database dumps and file archives. No 'url' key at all and
+            // serving is disabled: these are never reachable by any public
+            // route, only streamed out through the admin-only, permission
+            // checked BackupController@download action.
+            'serve' => false,
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

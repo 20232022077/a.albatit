@@ -13,7 +13,7 @@
     @if(session('status'))<p class="mt-4 rounded-lg bg-emerald-50 p-3 text-emerald-800">{{ session('status') }}</p>@endif
 
     <form method="GET" class="mt-6 flex items-center gap-3">
-        <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="trashed" value="1" @checked(request()->boolean('trashed')) onchange="this.form.submit()"> عرض المحذوفات</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="trashed" value="1" @checked(request()->boolean('trashed')) data-autosubmit> عرض المحذوفات</label>
     </form>
 
     <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200">
@@ -69,7 +69,7 @@
                                     @endif
                                 @endcan
                                 @can('permission', 'content.delete')
-                                    <form class="inline" method="POST" action="{{ route('admin.programs.episodes.destroy', [$program, $episode]) }}">@csrf @method('DELETE')<button class="mr-3 text-red-700" onclick="return confirm('حذف هذه الحلقة؟')">حذف</button></form>
+                                    <form class="inline" method="POST" action="{{ route('admin.programs.episodes.destroy', [$program, $episode]) }}" data-confirm="حذف هذه الحلقة؟">@csrf @method('DELETE')<button class="mr-3 text-red-700">حذف</button></form>
                                 @endcan
                             @endif
                         </td>

@@ -24,7 +24,7 @@
     'numberOfPages' => $book?->pages_count,
     'publisher' => $book?->publisher ? ['@type' => 'Organization', 'name' => $book->publisher] : null,
     'inLanguage' => 'ar',
-]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
 @endpush
 
 @section('public-content')

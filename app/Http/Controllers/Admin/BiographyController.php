@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Biography;
 use App\Models\ContentItem;
 use App\Models\Media;
+use App\Support\ActivityLogger;
 use App\Support\SafeFileUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +50,7 @@ class BiographyController extends Controller
             }
         }
 
-        DB::transaction(function () use ($data, $request, $socialLinks) {
+        $content = DB::transaction(function () use ($data, $request, $socialLinks) {
             $content = ContentItem::firstOrCreate(['type' => 'biography'], ['title' => $data['name'], 'slug' => 'biography', 'status' => 'draft']);
             $content->update([
                 'title' => $data['name'],
@@ -72,7 +73,11 @@ class BiographyController extends Controller
                 $ids[] = $item->id;
             }
             $bio->sections()->whereNotIn('id', $ids)->delete();
+
+            return $content;
         });
+
+        ActivityLogger::log('biography.updated', $content, ['name' => $data['name'], 'is_visible' => $data['is_visible']]);
 
         return back()->with('status', 'تم حفظ السيرة الذاتية.');
     }

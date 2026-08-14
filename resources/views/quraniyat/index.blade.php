@@ -13,7 +13,7 @@
 
     <form action="{{ route('quraniyat.index') }}" class="mt-7 flex flex-wrap gap-3">
         <input name="q" value="{{ $query }}" placeholder="ابحث في هذا القسم" class="min-w-[220px] flex-1 rounded-lg border-slate-300">
-        <select name="type" class="rounded-lg border-slate-300" onchange="this.form.submit()">
+        <select name="type" class="rounded-lg border-slate-300" data-autosubmit>
             <option value="">كل الأنواع</option>
             @foreach($typeLabels as $key => $label)<option value="{{ $key }}" @selected($type === $key)>{{ $label }}</option>@endforeach
         </select>

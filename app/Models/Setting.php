@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -33,9 +34,21 @@ class Setting extends Model
         self::flush();
     }
 
+    /**
+     * Read on every request via SiteSettings (shared into every view), so
+     * this must survive being called before the settings table exists yet
+     * — a fresh install running its first `migrate` boots the app (and
+     * therefore AppServiceProvider) before that migration has run.
+     */
     public static function bag(): array
     {
-        return Cache::remember(self::CACHE_KEY, now()->addHours(6), fn () => static::query()->pluck('value', 'key')->all());
+        return Cache::remember(self::CACHE_KEY, now()->addHours(6), function () {
+            try {
+                return static::query()->pluck('value', 'key')->all();
+            } catch (QueryException) {
+                return [];
+            }
+        });
     }
 
     public static function flush(): void

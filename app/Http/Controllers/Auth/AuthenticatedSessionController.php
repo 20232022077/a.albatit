@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
 
         if (RateLimiter::tooManyAttempts($throttleKey, self::MAX_ATTEMPTS)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-            $this->logAttempt('auth.login.throttled', $request, ['email' => $credentials['email']]);
+            ActivityLogger::log('auth.login.throttled', properties: ['email' => $credentials['email']]);
 
             return back()->withInput($request->except('password'))->withErrors([
                 'email' => "تم تجاوز عدد المحاولات. يرجى المحاولة بعد {$seconds} ثانية.",
@@ -42,7 +42,7 @@ class AuthenticatedSessionController extends Controller
 
         if (! Auth::attempt([...$credentials, 'is_active' => true], $request->boolean('remember'))) {
             RateLimiter::hit($throttleKey, self::DECAY_SECONDS);
-            $this->logAttempt('auth.login.failed', $request, ['email' => $credentials['email']]);
+            ActivityLogger::log('auth.login.failed', properties: ['email' => $credentials['email']]);
 
             return back()->withInput($request->except('password'))->withErrors([
                 'email' => 'بيانات الدخول غير صحيحة.',
@@ -51,14 +51,14 @@ class AuthenticatedSessionController extends Controller
 
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
-        $this->logAttempt('auth.login.succeeded', $request, [], Auth::id());
+        ActivityLogger::log('auth.login.succeeded', Auth::user());
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
-        $this->logAttempt('auth.logout', $request, [], Auth::id());
+        ActivityLogger::log('auth.logout', Auth::user());
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -69,17 +69,5 @@ class AuthenticatedSessionController extends Controller
     private function throttleKey(Request $request): string
     {
         return Str::transliterate(Str::lower((string) $request->input('email')).'|'.$request->ip());
-    }
-
-    private function logAttempt(string $event, Request $request, array $properties = [], ?int $userId = null): void
-    {
-        DB::table('activity_logs')->insert([
-            'user_id' => $userId,
-            'event' => $event,
-            'ip_address' => $request->ip(),
-            'user_agent' => Str::limit((string) $request->userAgent(), 65535, ''),
-            'properties' => json_encode($properties, JSON_THROW_ON_ERROR),
-            'created_at' => now(),
-        ]);
     }
 }

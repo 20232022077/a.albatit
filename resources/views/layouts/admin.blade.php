@@ -19,8 +19,8 @@
                 @can('viewAny', App\Models\User::class)<p class="px-4 pt-5 text-xs font-semibold text-slate-500">الإدارة</p><a href="{{ route('admin.users.index') }}" class="hover:bg-slate-800 block rounded-lg px-4 py-2.5 text-sm">المستخدمون</a>@endcan
                 @can('viewAny', App\Models\Role::class)<a href="{{ route('admin.roles.index') }}" class="hover:bg-slate-800 block rounded-lg px-4 py-2.5 text-sm">الأدوار والصلاحيات</a>@endcan
                 @can('permission', 'settings.manage')<a href="{{ route('admin.settings.edit') }}" class="{{ request()->routeIs('admin.settings.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800' }} block rounded-lg px-4 py-2.5 text-sm">إعدادات الموقع</a>@endcan
-                @can('permission', 'activity_logs.view')<a href="{{ route('admin.section', 'activity-logs') }}" class="hover:bg-slate-800 block rounded-lg px-4 py-2.5 text-sm">سجل العمليات</a>@endcan
-                @can('permission', 'backups.manage')<a href="{{ route('admin.section', 'backups') }}" class="hover:bg-slate-800 block rounded-lg px-4 py-2.5 text-sm">النسخ الاحتياطية</a>@endcan
+                @can('permission', 'activity_logs.view')<a href="{{ route('admin.activity-logs.index') }}" class="{{ request()->routeIs('admin.activity-logs.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800' }} block rounded-lg px-4 py-2.5 text-sm">سجل العمليات</a>@endcan
+                @can('permission', 'backups.manage')<a href="{{ route('admin.backups.index') }}" class="{{ request()->routeIs('admin.backups.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800' }} block rounded-lg px-4 py-2.5 text-sm">النسخ الاحتياطية</a>@endcan
             </nav>
             <div class="border-t border-slate-800 p-4"><form method="POST" action="{{ route('logout') }}">@csrf<button class="w-full rounded-lg bg-slate-800 px-4 py-2.5 text-sm hover:bg-slate-700">تسجيل الخروج</button></form></div>
         </aside>

@@ -13,11 +13,11 @@
 
     <form action="{{ route('reflections.index') }}" class="mt-7 flex flex-wrap gap-3">
         <input name="q" value="{{ $query }}" placeholder="ابحث في التأملات" class="min-w-[220px] flex-1 rounded-lg border-slate-300">
-        <select name="category_id" class="rounded-lg border-slate-300" onchange="this.form.submit()">
+        <select name="category_id" class="rounded-lg border-slate-300" data-autosubmit>
             <option value="">كل التصنيفات</option>
             @foreach($categories as $category)<option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>@endforeach
         </select>
-        <select name="sort" class="rounded-lg border-slate-300" onchange="this.form.submit()">
+        <select name="sort" class="rounded-lg border-slate-300" data-autosubmit>
             @foreach($sortLabels as $key => $label)<option value="{{ $key }}" @selected($sortKey === $key)>{{ $label }}</option>@endforeach
         </select>
         <button class="rounded-lg bg-emerald-700 px-5 py-2 text-white">بحث</button>

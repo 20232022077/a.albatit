@@ -84,7 +84,7 @@
                             </form>
                         @endcan
                         @can('permission', 'content.delete')
-                            <form method="POST" action="{{ route('admin.media.force-destroy', $item->id) }}" class="mt-1.5" onsubmit="return confirm('حذف هذه الصورة نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.')">@csrf @method('DELETE')
+                            <form method="POST" action="{{ route('admin.media.force-destroy', $item->id) }}" class="mt-1.5" data-confirm="حذف هذه الصورة نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.">@csrf @method('DELETE')
                                 <button class="w-full rounded-lg bg-red-50 py-1.5 text-xs font-medium text-red-700">حذف نهائي</button>
                             </form>
                         @endcan
@@ -104,7 +104,7 @@
                             <button class="w-full rounded-lg bg-slate-800 py-1.5 text-xs font-medium text-white">حفظ</button>
                         </form>
                         @can('permission', 'content.delete')
-                            <form method="POST" action="{{ route('admin.media.destroy', $item) }}" class="border-t border-slate-100 p-3" onsubmit="return confirm('نقل هذه الصورة إلى المحذوفات؟')">@csrf @method('DELETE')
+                            <form method="POST" action="{{ route('admin.media.destroy', $item) }}" class="border-t border-slate-100 p-3" data-confirm="نقل هذه الصورة إلى المحذوفات؟">@csrf @method('DELETE')
                                 <button class="w-full rounded-lg bg-red-50 py-1.5 text-xs font-medium text-red-700">حذف</button>
                             </form>
                         @endcan

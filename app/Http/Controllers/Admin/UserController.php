@@ -7,6 +7,8 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\ActivityLogger;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -31,9 +33,11 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $user = DB::transaction(function () use ($data) {
+        $roleIds = $this->assignableRoleIds($request, $data['role_ids'] ?? []);
+
+        $user = DB::transaction(function () use ($data, $roleIds) {
             $user = User::create(Arr::except($data, 'role_ids'));
-            $user->roles()->sync($data['role_ids'] ?? []);
+            $user->roles()->sync($roleIds);
 
             return $user;
         });
@@ -52,12 +56,14 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $data = $request->validated();
-        DB::transaction(function () use ($data, $user) {
+        $roleIds = $this->assignableRoleIds($request, $data['role_ids'] ?? [], $user);
+
+        DB::transaction(function () use ($data, $user, $roleIds) {
             $user->update(Arr::except($data, ['role_ids', 'password']));
             if (filled($data['password'] ?? null)) {
                 $user->update(['password' => $data['password']]);
             }
-            $user->roles()->sync($data['role_ids'] ?? []);
+            $user->roles()->sync($roleIds);
         });
         $this->record('users.updated', $user);
 
@@ -73,8 +79,34 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('status', 'تم حذف المستخدم ويمكن استعادته لاحقًا.');
     }
 
+    /**
+     * A user who isn't themselves a super-admin can manage other accounts
+     * (given users.create/users.update) but must never be able to grant the
+     * super-admin role to anyone — that would be a privilege escalation, so
+     * the id is silently dropped from whatever was submitted. Editing an
+     * account that already holds the role keeps it, since removing it here
+     * would let a lesser-privileged manager demote a super-admin instead.
+     */
+    private function assignableRoleIds(Request $request, array $roleIds, ?User $target = null): array
+    {
+        if ($request->user()->hasRole('super-admin')) {
+            return $roleIds;
+        }
+
+        $superAdminRoleId = Role::where('name', 'super-admin')->value('id');
+        if (! $superAdminRoleId) {
+            return $roleIds;
+        }
+
+        if ($target?->hasRole('super-admin')) {
+            return array_unique([...$roleIds, $superAdminRoleId]);
+        }
+
+        return array_values(array_diff($roleIds, [$superAdminRoleId]));
+    }
+
     private function record(string $event, User $subject): void
     {
-        DB::table('activity_logs')->insert(['user_id' => auth()->id(), 'event' => $event, 'subject_type' => User::class, 'subject_id' => $subject->id, 'ip_address' => request()->ip(), 'user_agent' => request()->userAgent(), 'properties' => null, 'created_at' => now()]);
+        ActivityLogger::log($event, $subject, ['name' => $subject->name, 'email' => $subject->email]);
     }
 }

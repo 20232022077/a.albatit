@@ -6,11 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreMediaRequest;
 use App\Http\Requests\Admin\UpdateMediaRequest;
 use App\Models\Media;
+use App\Support\ActivityLogger;
 use App\Support\SafeFileUpload;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -121,15 +121,6 @@ class MediaController extends Controller
 
     private function record(string $event, Media $media): void
     {
-        DB::table('activity_logs')->insert([
-            'user_id' => auth()->id(),
-            'event' => $event,
-            'subject_type' => Media::class,
-            'subject_id' => $media->id,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'properties' => null,
-            'created_at' => now(),
-        ]);
+        ActivityLogger::log($event, $media, ['original_name' => $media->original_name]);
     }
 }

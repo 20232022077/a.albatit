@@ -88,32 +88,4 @@
         </div>
     </div>
 </template>
-
-<script>
-(() => {
-    let index = {{ $biography?->sections->count() ?? 0 }};
-    const container = document.getElementById('sections-container');
-    const template = document.getElementById('section-template');
-    const hint = document.getElementById('no-sections-hint');
-
-    document.getElementById('add-section')?.addEventListener('click', () => {
-        const clone = template.content.cloneNode(true);
-        clone.querySelectorAll('[name*="__INDEX__"]').forEach((el) => {
-            el.name = el.name.replace('__INDEX__', index);
-        });
-        container.appendChild(clone);
-        index++;
-        hint?.classList.add('hidden');
-    });
-
-    container?.addEventListener('click', (event) => {
-        if (event.target.classList.contains('remove-section')) {
-            event.target.closest('.section-row').remove();
-            if (! container.querySelector('.section-row')) {
-                hint?.classList.remove('hidden');
-            }
-        }
-    });
-})();
-</script>
 @endsection

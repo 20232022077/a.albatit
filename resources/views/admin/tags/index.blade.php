@@ -74,7 +74,7 @@
                                     @endif
                                 @endcan
                                 @can('permission', 'content.delete')
-                                    <form class="inline" method="POST" action="{{ route('admin.tags.destroy', $tag) }}">@csrf @method('DELETE')<button class="mr-3 text-red-700" onclick="return confirm('حذف هذا الوسم؟')">حذف</button></form>
+                                    <form class="inline" method="POST" action="{{ route('admin.tags.destroy', $tag) }}" data-confirm="حذف هذا الوسم؟">@csrf @method('DELETE')<button class="mr-3 text-red-700">حذف</button></form>
                                 @endcan
                             @endif
                         </td>

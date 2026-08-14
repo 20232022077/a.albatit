@@ -7,6 +7,8 @@ use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Models\Category;
 use App\Models\Media;
+use App\Support\ActivityLogger;
+use App\Support\SafeFileUpload;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -197,40 +199,36 @@ class CategoryController extends Controller
             return;
         }
 
+        SafeFileUpload::assertSafe($file, SafeFileUpload::IMAGE_EXTENSIONS, 4096);
+
         $oldId = $category->image_media_id;
         $path = $file->store('categories', 'public');
         [$width, $height] = @getimagesize($file->getRealPath()) ?: [null, null];
+        $variants = $width ? SafeFileUpload::generateImageVariants('public', $path) : [];
 
         $media = Media::create([
             'uploaded_by' => $userId,
             'disk' => 'public',
             'path' => $path,
-            'original_name' => $file->getClientOriginalName(),
-            'mime_type' => $file->getClientMimeType(),
+            'original_name' => basename($file->getClientOriginalName()),
+            'mime_type' => $file->getMimeType(),
             'size' => $file->getSize(),
             'width' => $width,
             'height' => $height,
+            'metadata' => $variants !== [] ? ['variants' => $variants] : null,
         ]);
 
         $category->update(['image_media_id' => $media->id]);
 
         if ($oldId && $old = Media::find($oldId)) {
             Storage::disk($old->disk)->delete($old->path);
+            SafeFileUpload::deleteVariants($old->disk, $old->metadata['variants'] ?? []);
             $old->delete();
         }
     }
 
     private function record(string $event, Category $category): void
     {
-        DB::table('activity_logs')->insert([
-            'user_id' => auth()->id(),
-            'event' => $event,
-            'subject_type' => Category::class,
-            'subject_id' => $category->id,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'properties' => null,
-            'created_at' => now(),
-        ]);
+        ActivityLogger::log($event, $category, ['name' => $category->name]);
     }
 }

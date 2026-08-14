@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Setting;
+use App\Support\ActivityLogger;
 use App\Support\SafeFileUpload;
 use App\Support\SiteSettings;
 use Illuminate\Http\RedirectResponse;
@@ -63,6 +64,15 @@ class SettingController extends Controller
         if ($request->hasFile('default_og_image')) {
             $this->replaceMediaSetting('seo.default_og_image_id', $request->file('default_og_image'), 'seo', $request->user()->id, SafeFileUpload::IMAGE_EXTENSIONS, 4096);
         }
+
+        ActivityLogger::log('settings.updated', properties: [
+            'site_name' => $data['site_name'] ?? null,
+            'changed_files' => array_keys(array_filter([
+                'logo' => $request->hasFile('logo'),
+                'favicon' => $request->hasFile('favicon'),
+                'default_og_image' => $request->hasFile('default_og_image'),
+            ])),
+        ]);
 
         return back()->with('status', 'تم حفظ إعدادات الموقع.');
     }

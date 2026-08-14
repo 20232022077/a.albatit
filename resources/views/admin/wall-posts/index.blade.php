@@ -66,7 +66,7 @@
                             @endif
                         @endcan
                         @can('permission', 'content.delete')
-                            <form method="POST" action="{{ route('admin.wall-posts.destroy', $item) }}">@csrf @method('DELETE')<button class="text-red-700" onclick="return confirm('حذف هذا المنشور؟')">حذف</button></form>
+                            <form method="POST" action="{{ route('admin.wall-posts.destroy', $item) }}" data-confirm="حذف هذا المنشور؟">@csrf @method('DELETE')<button class="text-red-700">حذف</button></form>
                         @endcan
                     @endif
                 </div>

@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreTagRequest;
 use App\Http\Requests\Admin\UpdateTagRequest;
 use App\Models\Tag;
+use App\Support\ActivityLogger;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -146,15 +146,6 @@ class TagController extends Controller
 
     private function record(string $event, Tag $tag): void
     {
-        DB::table('activity_logs')->insert([
-            'user_id' => auth()->id(),
-            'event' => $event,
-            'subject_type' => Tag::class,
-            'subject_id' => $tag->id,
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'properties' => null,
-            'created_at' => now(),
-        ]);
+        ActivityLogger::log($event, $tag, ['name' => $tag->name]);
     }
 }

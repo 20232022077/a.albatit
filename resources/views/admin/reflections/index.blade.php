@@ -93,7 +93,7 @@
                                     @endif
                                 @endcan
                                 @can('permission', 'content.delete')
-                                    <form class="inline" method="POST" action="{{ route('admin.reflections.destroy', $item) }}">@csrf @method('DELETE')<button class="mr-3 text-red-700" onclick="return confirm('حذف هذا التأمل؟')">حذف</button></form>
+                                    <form class="inline" method="POST" action="{{ route('admin.reflections.destroy', $item) }}" data-confirm="حذف هذا التأمل؟">@csrf @method('DELETE')<button class="mr-3 text-red-700">حذف</button></form>
                                 @endcan
                             @endif
                         </td>

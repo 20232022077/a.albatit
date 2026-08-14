@@ -17,7 +17,7 @@
         'target' => route('search') . '?q={search_term_string}',
         'query-input' => 'required name=search_term_string',
     ],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
 @endpush
 
 @section('public-content')

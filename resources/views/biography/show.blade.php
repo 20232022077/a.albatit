@@ -27,7 +27,7 @@
     'description' => $contentItem->excerpt,
     'image' => $ogImage,
     'sameAs' => array_values(array_filter($socialLinks)) ?: null,
-]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
 @endpush
 
 @section('public-content')
