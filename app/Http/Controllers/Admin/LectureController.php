@@ -137,7 +137,7 @@ class LectureController extends Controller
 
             $this->syncCategories($item, $data['category_ids'] ?? []);
             $this->syncTags($item, $data['tags'] ?? '');
-            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'lectures', $request->user()->id);
+            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'lectures', $request->user()->id, $request->boolean('remove_cover_image'));
         });
 
         $this->recordActivity('lectures.updated', $item);
@@ -188,8 +188,4 @@ class LectureController extends Controller
         abort_unless($item->type === 'lecture', 404);
     }
 
-    private function syncCategories(ContentItem $item, array $categoryIds): void
-    {
-        $item->categories()->sync($categoryIds);
-    }
 }

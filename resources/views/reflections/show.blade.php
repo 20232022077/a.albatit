@@ -25,34 +25,53 @@
 @endpush
 
 @section('public-content')
-<main class="mx-auto max-w-3xl px-5 py-12">
+<main class="mx-auto max-w-2xl px-5 py-10 sm:py-12">
     @include('partials.breadcrumbs')
 
-    <h1 class="mt-4 text-3xl font-bold">{{ $item->title }}</h1>
-    <div class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-slate-500">
-        @if($item->published_at)<span>{{ $item->published_at->translatedFormat('j F Y') }}</span>@endif
-        @if($reflection?->surah_number)
-            <span>
-                سورة {{ $reflection->surah_number }}
-                @if($reflection->ayah_from)
-                    — الآية {{ $reflection->ayah_from }}@if($reflection->ayah_to && $reflection->ayah_to !== $reflection->ayah_from) إلى {{ $reflection->ayah_to }}@endif
-                @endif
-            </span>
+    <div class="mt-6 overflow-hidden rounded-3xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md">
+        @if($cover = $item->coverImage())
+            <div class="aspect-[3/1] overflow-hidden">
+                <img src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover">
+            </div>
         @endif
-        @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
+        <div class="p-7 text-center sm:p-10">
+            @unless($cover)
+                <span class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-emerald-900 to-emerald-950 text-2xl text-amber-300 shadow-sm">۞</span>
+            @endunless
+
+            <h1 class="{{ $cover ? '' : 'mt-5' }} text-2xl font-extrabold leading-9 sm:text-3xl">{{ $item->title }}</h1>
+            @include('partials.card-divider', ['accent' => 'amber'])
+
+            <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-sm text-slate-500">
+                @if($item->published_at)<span>{{ $item->published_at->translatedFormat('j F Y') }}</span>@endif
+                @if($reflection?->surah_number)
+                    <span class="font-semibold text-emerald-700">
+                        سورة {{ $reflection->surah_number }}
+                        @if($reflection->ayah_from)
+                            — الآية {{ $reflection->ayah_from }}@if($reflection->ayah_to && $reflection->ayah_to !== $reflection->ayah_from) إلى {{ $reflection->ayah_to }}@endif
+                        @endif
+                    </span>
+                @endif
+                @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
+            </div>
+        </div>
+
+        @if($item->body)
+            @include('partials.section-divider', ['accent' => 'amber'])
+            <div class="p-7 sm:p-9">
+                <div class="prose prose-slate mx-auto max-w-2xl text-lg leading-9 text-slate-700">
+                    @include('partials.rich-text', ['text' => $item->body])
+                </div>
+            </div>
+        @endif
     </div>
 
-    @if($cover = $item->coverImage())
-        <img src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="mt-6 w-full rounded-2xl object-cover">
-    @endif
-
-    @if($item->excerpt)<p class="mt-6 text-lg leading-8 text-slate-700">{{ $item->excerpt }}</p>@endif
-    @if($item->body)<div class="prose prose-slate mt-6 max-w-none leading-8">{!! nl2br(e($item->body)) !!}</div>@endif
-
     @if($item->tags->where('is_active', true)->isNotEmpty())
-        <div class="mt-8 flex flex-wrap gap-2">
+        <div class="mt-10 flex flex-wrap justify-center gap-2">
             @foreach($item->tags->where('is_active', true) as $tag)<span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">#{{ $tag->name }}</span>@endforeach
         </div>
     @endif
+
+    @include('partials.content-navigation', ['prev' => $prev ?? null, 'next' => $next ?? null])
 </main>
 @endsection

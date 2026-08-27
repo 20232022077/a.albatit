@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasSiblingNavigation;
 use App\Http\Controllers\Concerns\ResolvesContentSlug;
 use App\Models\ContentItem;
 use App\Support\SiteSettings;
@@ -12,7 +13,7 @@ use Illuminate\View\View;
 
 class ProgramController extends Controller
 {
-    use ResolvesContentSlug;
+    use HasSiblingNavigation, ResolvesContentSlug;
 
     public function index(Request $request): View
     {
@@ -52,6 +53,8 @@ class ProgramController extends Controller
             ->sortBy(fn (ContentItem $episode) => $episode->programEpisode?->episode_number ?? 0)
             ->values();
 
-        return view('programs.show', ['item' => $item, 'episodes' => $episodes]);
+        $siblings = $this->siblingNavigation(fn () => ContentItem::published()->ofType('program'), $item);
+
+        return view('programs.show', ['item' => $item, 'episodes' => $episodes, ...$siblings]);
     }
 }

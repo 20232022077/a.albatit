@@ -12,6 +12,7 @@ use App\Support\SafeYoutube;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -98,6 +99,11 @@ trait ManagesContentItems
         return $videoId ? ['video_url' => $url, 'video_id' => $videoId] : [];
     }
 
+    protected function syncCategories(ContentItem $item, array $categoryIds): void
+    {
+        $item->categories()->sync($categoryIds);
+    }
+
     protected function syncTags(ContentItem $item, string $tagsInput): void
     {
         $ids = collect(explode(',', $tagsInput))
@@ -120,8 +126,8 @@ trait ManagesContentItems
             default => SafeFileUpload::IMAGE_EXTENSIONS,
         };
         $maxKb = match ($type) {
-            'pdf', 'video' => 51200,
-            default => 10240,
+            'pdf', 'video' => SafeFileUpload::MAX_DOCUMENT_KB,
+            default => SafeFileUpload::MAX_MEDIA_LIBRARY_IMAGE_KB,
         };
         SafeFileUpload::assertSafe($file, $allowed, $maxKb);
 
@@ -146,9 +152,9 @@ trait ManagesContentItems
         ]);
     }
 
-    protected function replaceMediaCollection(ContentItem $item, ?UploadedFile $file, string $collection, string $directory, int $userId): void
+    protected function replaceMediaCollection(ContentItem $item, ?UploadedFile $file, string $collection, string $directory, int $userId, bool $remove = false): void
     {
-        if (! $file) {
+        if (! $file && ! $remove) {
             return;
         }
 
@@ -162,12 +168,21 @@ trait ManagesContentItems
             }
         }
 
-        $media = $this->createMedia($file, $directory, $userId);
-        $item->media()->attach($media->id, ['collection' => $collection, 'sort_order' => 0]);
+        if ($file) {
+            $media = $this->createMedia($file, $directory, $userId);
+            $item->media()->attach($media->id, ['collection' => $collection, 'sort_order' => 0]);
+        }
     }
 
     protected function recordActivity(string $event, ContentItem $item): void
     {
         ActivityLogger::log($event, $item, array_filter(['title' => $item->title, 'type' => $item->type, 'status' => $item->status]));
+
+        // The homepage caches its "latest per type" + featured data for 5
+        // minutes (see HomeController) purely as a read-speed optimization —
+        // it was never meant to make admin edits invisible for 5 minutes.
+        // Every content mutation funnels through here, so this is the one
+        // place that needs to bust it.
+        Cache::forget('home.index.data');
     }
 }

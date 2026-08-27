@@ -78,17 +78,25 @@
             @error('isbn')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
         </div>
 
-        <div class="grid gap-5 sm:grid-cols-2">
+        <div class="grid gap-5 sm:grid-cols-2" data-book-cover-source>
             <div>
-                <label class="text-sm font-medium">صورة الغلاف</label>
-                @if($item->exists && $book->cover)<img loading="lazy" src="{{ $book->cover->displayUrl() }}" alt="" class="mt-2 h-24 w-24 rounded-lg object-cover">@endif
-                <input type="file" name="cover_image" accept="image/*" class="mt-2 w-full text-sm">
+                <label for="field-cover_image" class="text-sm font-medium">صورة الغلاف (اختياري)</label>
+                <p class="mt-0.5 text-xs text-slate-500">إن لم تُرفع صورة، تُستخرج الصفحة الأولى من ملف الـ PDF تلقائيًا لتكون الغلاف.</p>
+                <img loading="lazy" src="{{ $item->exists && $book->cover ? $book->cover->displayUrl() : '' }}" alt="" class="mt-2 h-24 w-24 rounded-lg object-cover {{ $item->exists && $book->cover ? '' : 'hidden' }}" data-cover-preview>
+                <p class="mt-1 hidden text-xs text-emerald-700" data-cover-auto-note>تم إنشاء هذه الصورة تلقائيًا من الصفحة الأولى للملف.</p>
+                <input type="file" id="field-cover_image" name="cover_image" accept="image/*" class="mt-2 w-full text-sm" data-cover-input>
                 @error('cover_image')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+                @if($item->exists && $book->cover)
+                    <label class="mt-2 flex items-center gap-2 text-sm text-red-700">
+                        <input type="checkbox" name="remove_cover_image" value="1">
+                        حذف الصورة الحالية
+                    </label>
+                @endif
             </div>
             <div>
-                <label class="text-sm font-medium">ملف PDF</label>
+                <label for="field-pdf_file" class="text-sm font-medium">ملف PDF</label>
                 @if($item->exists && $book->pdf)<a href="{{ $book->pdf->pdfUrl() }}" target="_blank" class="mt-2 block text-sm text-emerald-700">{{ $book->pdf->original_name }}</a>@endif
-                <input type="file" name="pdf_file" accept="application/pdf" class="mt-2 w-full text-sm">
+                <input type="file" id="field-pdf_file" name="pdf_file" accept="application/pdf" class="mt-2 w-full text-sm" data-pdf-input>
                 @error('pdf_file')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
             </div>
         </div>

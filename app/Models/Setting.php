@@ -42,13 +42,13 @@ class Setting extends Model
      */
     public static function bag(): array
     {
-        return Cache::remember(self::CACHE_KEY, now()->addHours(6), function () {
-            try {
+        try {
+            return Cache::remember(self::CACHE_KEY, now()->addHours(6), function () {
                 return static::query()->pluck('value', 'key')->all();
-            } catch (QueryException) {
-                return [];
-            }
-        });
+            });
+        } catch (QueryException) {
+            return [];
+        }
     }
 
     public static function flush(): void

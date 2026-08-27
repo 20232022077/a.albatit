@@ -9,6 +9,7 @@ use App\Models\Media;
 use App\Support\ActivityLogger;
 use App\Support\SafeFileUpload;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -31,6 +32,10 @@ class BiographyController extends Controller
             'excerpt' => ['nullable', 'string'],
             'body' => ['nullable', 'string'],
             'is_visible' => ['required', 'boolean'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'birth_year_hijri' => ['nullable', 'string', 'max:50'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
+            'contact_phone' => ['nullable', 'string', 'max:50'],
             'social_links' => ['nullable', 'string'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'sections' => ['nullable', 'array'],
@@ -58,7 +63,13 @@ class BiographyController extends Controller
                 'body' => $data['body'],
                 'status' => $data['is_visible'] ? 'published' : 'draft',
                 'published_at' => $data['is_visible'] ? ($content->published_at ?? now()) : null,
-                'meta' => ['social_links' => $socialLinks],
+                'meta' => [
+                    'social_links' => $socialLinks,
+                    'city' => $data['city'] ?? null,
+                    'birth_year_hijri' => $data['birth_year_hijri'] ?? null,
+                    'contact_email' => $data['contact_email'] ?? null,
+                    'contact_phone' => $data['contact_phone'] ?? null,
+                ],
             ]);
 
             $bio = Biography::firstOrCreate(['content_item_id' => $content->id]);
@@ -78,6 +89,12 @@ class BiographyController extends Controller
         });
 
         ActivityLogger::log('biography.updated', $content, ['name' => $data['name'], 'is_visible' => $data['is_visible']]);
+
+        // The homepage biography card is served from the same 5-minute
+        // cache as the other homepage sections (see HomeController /
+        // ManagesContentItems::recordActivity) — bust it here too since
+        // biography updates don't go through that trait.
+        Cache::forget('home.index.data');
 
         return back()->with('status', 'تم حفظ السيرة الذاتية.');
     }

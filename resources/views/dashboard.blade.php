@@ -29,7 +29,7 @@
             @endforeach
         </section>
         <section class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="flex items-center justify-between"><h2 class="font-bold">آخر العمليات</h2>@can('permission', 'activity_logs.view')<a href="{{ route('admin.section', 'activity-logs') }}" class="text-sm text-emerald-700">عرض السجل</a>@endcan</div>
+            <div class="flex items-center justify-between"><h2 class="font-bold">آخر العمليات</h2>@can('permission', 'activity_logs.view')<a href="{{ route('admin.activity-logs.index') }}" class="text-sm text-emerald-700">عرض السجل</a>@endcan</div>
             <div class="mt-4 divide-y divide-slate-100">@forelse($recentActivities as $activity)<div class="flex items-center justify-between gap-3 py-3"><span class="text-sm font-medium">{{ $activity->event }}</span><span class="text-xs text-slate-400">{{ \Carbon\Carbon::parse($activity->created_at)->diffForHumans() }}</span></div>@empty<p class="py-6 text-center text-sm text-slate-500">لا توجد عمليات مسجلة بعد.</p>@endforelse</div>
         </section>
     </main>

@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Backup;
 use Database\Seeders\AccessControlSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\CreatesUsers;
 use Tests\TestCase;
@@ -36,12 +35,19 @@ class SettingsBackupActivityLogTest extends TestCase
         $this->actingAs($admin)->put(route('admin.settings.update'), [
             'site_name' => 'اسم الموقع الجديد',
             'items_per_page' => 6,
+            'hero_eyebrow' => 'عبارة تجريبية فوق الصورة',
+            'hero_caption' => 'وصف تجريبي تحت الصورة',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('settings', ['key' => 'general.site_name', 'value' => 'اسم الموقع الجديد']);
+        $this->assertDatabaseHas('settings', ['key' => 'homepage.hero_eyebrow', 'value' => 'عبارة تجريبية فوق الصورة']);
+        $this->assertDatabaseHas('settings', ['key' => 'homepage.hero_caption', 'value' => 'وصف تجريبي تحت الصورة']);
 
         \App\Models\Setting::flush();
-        $this->get('/')->assertSee('اسم الموقع الجديد');
+        $response = $this->get('/');
+        $response->assertSee('اسم الموقع الجديد');
+        $response->assertSee('عبارة تجريبية فوق الصورة');
+        $response->assertSee('وصف تجريبي تحت الصورة');
     }
 
     public function test_settings_update_is_recorded_in_the_activity_log(): void

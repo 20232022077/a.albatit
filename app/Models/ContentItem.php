@@ -14,7 +14,7 @@ class ContentItem extends Model
 
     protected function casts(): array
     {
-        return ['is_featured' => 'boolean', 'sort_order' => 'integer', 'published_at' => 'datetime', 'meta' => 'array'];
+        return ['is_featured' => 'boolean', 'sort_order' => 'integer', 'likes_count' => 'integer', 'published_at' => 'datetime', 'meta' => 'array'];
     }
 
     public function scopePublished(Builder $query): Builder
@@ -65,6 +65,11 @@ class ContentItem extends Model
     public function book()
     {
         return $this->hasOne(Book::class, 'content_item_id');
+    }
+
+    public function biography()
+    {
+        return $this->hasOne(Biography::class, 'content_item_id');
     }
 
     public function program()

@@ -30,34 +30,54 @@
 @endif
 
 @section('public-content')
-<main class="mx-auto max-w-3xl px-5 py-12">
+<main class="mx-auto max-w-3xl px-5 py-10 sm:py-12">
     @include('partials.breadcrumbs')
 
-    <span class="mt-6 inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">{{ $typeLabels[$item->type] ?? $item->type }}</span>
-    <h1 class="mt-3 text-3xl font-bold">{{ $item->title }}</h1>
-    <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-        @if($item->published_at)<span>{{ $item->published_at->translatedFormat('j F Y') }}</span>@endif
-        @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
+    <div class="relative mt-6 overflow-hidden rounded-3xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md">
+        @if($cover = $item->coverImage())
+            <div class="aspect-[3/1] overflow-hidden">
+                <img src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover">
+            </div>
+        @endif
+        <div class="relative p-6 sm:p-7">
+            <span class="absolute inset-x-8 top-0 h-px bg-gradient-to-l from-amber-400/70 via-amber-300/70 to-transparent"></span>
+            <div class="text-center sm:text-right">
+                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">✦ {{ $typeLabels[$item->type] ?? $item->type }}</span>
+                <h1 class="mt-3 text-2xl font-extrabold sm:text-3xl">{{ $item->title }}</h1>
+                @include('partials.card-divider', ['accent' => 'amber'])
+                <div class="flex flex-wrap items-center justify-center gap-3 text-sm text-slate-500 sm:justify-start">
+                    @if($item->published_at)<span>{{ $item->published_at->translatedFormat('j F Y') }}</span>@endif
+                    @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
+                </div>
+            </div>
+        </div>
+
+        @if($item->type === 'video' && $videoId)
+            <div class="px-6 pb-6 sm:px-7 sm:pb-7">
+                @include('partials.youtube-embed', ['videoId' => $videoId, 'class' => 'aspect-video overflow-hidden rounded-2xl bg-black'])
+            </div>
+        @elseif($item->type === 'pdf' && $attachment)
+            <div class="px-6 pb-6 sm:px-7 sm:pb-7">
+                <a href="{{ $attachment->pdfUrl() }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-emerald-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">تحميل ملف PDF</a>
+            </div>
+        @endif
+
+        @if($item->body)
+            @include('partials.section-divider', ['accent' => 'amber'])
+            <div class="p-6 sm:p-8">
+                <div class="prose prose-slate mx-auto max-w-2xl text-[17px] leading-9 text-slate-700">
+                    @include('partials.rich-text', ['text' => $item->body])
+                </div>
+            </div>
+        @endif
     </div>
-
-    @if($item->type === 'video' && $videoId)
-        @include('partials.youtube-embed', ['videoId' => $videoId, 'class' => 'mt-6 aspect-video overflow-hidden rounded-2xl bg-black'])
-    @elseif($cover = $item->coverImage())
-        <img src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="mt-6 w-full rounded-2xl object-cover">
-    @endif
-
-    @if($item->excerpt)<p class="mt-6 text-lg leading-8 text-slate-700">{{ $item->excerpt }}</p>@endif
-
-    @if($item->type === 'pdf' && $attachment)
-        <a href="{{ $attachment->pdfUrl() }}" target="_blank" rel="noopener" class="mt-6 inline-flex rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white">تحميل ملف PDF</a>
-    @endif
-
-    @if($item->body)<div class="prose prose-slate mt-8 max-w-none leading-8">{!! nl2br(e($item->body)) !!}</div>@endif
 
     @if($item->tags->where('is_active', true)->isNotEmpty())
         <div class="mt-8 flex flex-wrap gap-2">
             @foreach($item->tags->where('is_active', true) as $tag)<span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">#{{ $tag->name }}</span>@endforeach
         </div>
     @endif
+
+    @include('partials.content-navigation', ['prev' => $prev ?? null, 'next' => $next ?? null])
 </main>
 @endsection

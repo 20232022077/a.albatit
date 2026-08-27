@@ -38,10 +38,16 @@
         </div>
 
         <div>
-            <label class="text-sm font-medium">الصورة</label>
+            <label class="text-sm font-medium">الصورة (اختياري)</label>
             @if($cover = $item->coverImage())<img loading="lazy" src="{{ $cover->displayUrl() }}" alt="" class="mt-2 h-24 w-24 rounded-lg object-cover">@endif
             <input type="file" name="cover_image" accept="image/*" class="mt-2 w-full text-sm">
             @error('cover_image')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            @if($cover)
+                <label class="mt-2 flex items-center gap-2 text-sm text-red-700">
+                    <input type="checkbox" name="remove_cover_image" value="1">
+                    حذف الصورة الحالية
+                </label>
+            @endif
         </div>
 
         <fieldset class="rounded-lg border border-slate-200 p-4">

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\ContentItem;
 use App\Search\SearchEngine;
 use Illuminate\Http\Request;
@@ -14,27 +13,36 @@ class HomeController extends Controller
     /**
      * The homepage aggregates ~10 separate queries and is by far the
      * most-visited page. A short TTL keeps it fast for the flood of
-     * repeat/anonymous visits while still reflecting new content within
-     * a few minutes — no need to wire cache invalidation into every
-     * content controller's publish/unpublish/create/update action for
-     * that small a freshness window.
+     * repeat/anonymous visits; ManagesContentItems::recordActivity() (and
+     * BiographyController::update()) forget this key on every content
+     * mutation, so edits still show up immediately rather than waiting
+     * out the TTL.
      */
     public function index(): View
     {
         $data = Cache::remember('home.index.data', now()->addMinutes(5), function () {
-            $latest = fn (string $type, int $limit = 4) => ContentItem::published()->where('type', $type)->latest('published_at')->limit($limit)->get();
+            // Eager load whichever relation each type's card needs for its
+            // cover image and type-specific metadata (see
+            // resources/views/home.blade.php) — without this, every card
+            // would trigger its own extra query.
+            $latest = fn (string $type, int $limit = 3) => ContentItem::published()->where('type', $type)
+                ->with(match ($type) {
+                    'book' => 'book.cover',
+                    'program' => ['program', 'media'],
+                    'lecture' => ['lecture', 'media'],
+                    'wall_post' => ['wallPost', 'media'],
+                    default => 'media',
+                })
+                ->latest('published_at')->limit($limit)->get();
 
             return [
-                'featured' => ContentItem::published()->where('is_featured', true)->latest('published_at')->limit(3)->get(),
                 'books' => $latest('book'), 'lectures' => $latest('lecture'), 'programs' => $latest('program'),
                 'reflections' => $latest('reflection'), 'wallPosts' => $latest('wall_post'),
-                'quranCentrality' => ContentItem::published()->inCategory('quran-centrality')->latest('published_at')->limit(4)->get(),
-                'quraniyat' => ContentItem::published()->inCategory('quraniyat')->latest('published_at')->limit(4)->get(),
-                'biography' => ContentItem::published()->where('type', 'biography')->with('categories')->latest('published_at')->first(),
+                'quranCentrality' => ContentItem::published()->inCategory('quran-centrality')->with('media')->latest('published_at')->limit(3)->get(),
+                'quraniyat' => ContentItem::published()->inCategory('quraniyat')->with('media')->latest('published_at')->limit(3)->get(),
+                'biography' => ContentItem::published()->where('type', 'biography')->with('categories', 'biography.profileImage')->latest('published_at')->first(),
             ];
         });
-
-        $data['categories'] = Category::cachedActive()->whereNull('parent_id')->take(8)->values();
 
         return view('home', $data);
     }

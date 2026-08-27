@@ -13,9 +13,11 @@ class ApplySecurityHeaders
         /** @var Response $response */
         $response = $next($request);
 
-        // Clickjacking: redundant with the CSP frame-ancestors directive,
-        // kept for browsers that only honor the older header.
-        $response->headers->set('X-Frame-Options', 'DENY');
+        // Clickjacking: redundant with the CSP frame-ancestors 'self' directive,
+        // kept for browsers that only honor the older header. Must match
+        // frame-ancestors' "same-origin only" policy (not DENY) since the
+        // site embeds its own PDFs in an iframe on the book reading page.
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
 
         // Stops the browser from guessing (“sniffing”) a file’s type from
         // its content, e.g. treating an uploaded image as executable HTML.

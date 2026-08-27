@@ -107,4 +107,51 @@ class SecurityTest extends TestCase
 
         $this->assertDatabaseHas('roles', ['id' => $superAdminRole->id]);
     }
+
+    /**
+     * Regression test: the CSP once allowed the Bunny Fonts font files
+     * (font-src) but not the stylesheet that declares the @font-face rules
+     * pointing at them (style-src), so the Tajawal webfont silently failed
+     * to load site-wide; and img-src once lacked 'blob:', which silently
+     * broke the admin book form's client-side PDF-cover preview
+     * (URL.createObjectURL). Both must stay covered. style-src no longer
+     * needs 'unsafe-inline': the decorative dotted-grid backgrounds that
+     * used to be inline style="" attributes are now named utility classes
+     * (bg-dot-grid-* in resources/css/app.css).
+     */
+    public function test_content_security_policy_allows_the_webfont_stylesheet_and_blob_image_previews(): void
+    {
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString("style-src 'self' https://fonts.bunny.net", $csp);
+        $this->assertStringNotContainsString("'unsafe-inline'", $csp);
+        $this->assertStringContainsString("img-src 'self' data: blob:", $csp);
+    }
+
+    /**
+     * Clickjacking, MIME-sniffing, and referrer-leak protection must be
+     * present on every response, not just the homepage.
+     */
+    public function test_security_headers_are_present_on_public_and_admin_responses(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+        $response->assertHeader('X-Content-Type-Options', 'nosniff');
+        $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->assertHeader('X-Permitted-Cross-Domain-Policies', 'none');
+        $this->assertFalse($response->headers->has('X-Powered-By'));
+    }
+
+    /**
+     * HSTS must never be sent over a plain-HTTP local/staging request —
+     * doing so could permanently downgrade a non-HTTPS environment in the
+     * visitor's browser via the includeSubDomains directive.
+     */
+    public function test_hsts_header_is_absent_over_a_non_secure_request(): void
+    {
+        $response = $this->get('/');
+
+        $this->assertFalse($response->headers->has('Strict-Transport-Security'));
+    }
 }

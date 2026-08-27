@@ -17,7 +17,7 @@ class ContentUrl
             $item->type === 'book' => route('books.show', $item->slug),
             $item->type === 'lecture' => route('lectures.show', $item->slug),
             $item->type === 'reflection' => route('reflections.show', $item->slug),
-            $item->type === 'wall_post' => route('wall.index'),
+            $item->type === 'wall_post' => route('wall.show', $item->slug),
             $item->type === 'program' => route('programs.show', $item->slug),
             $item->type === 'program_episode' => self::episodeUrl($item),
             $item->relationLoaded('categories') && $item->categories->contains('slug', 'quran-centrality') => route('quran-centrality.show', $item->slug),

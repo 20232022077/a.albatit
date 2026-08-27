@@ -19,6 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
             ApplySecurityHeaders::class,
         ]);
         $middleware->alias(['active' => EnsureUserIsActive::class]);
+
+        // Trust a reverse proxy running on the same host (e.g. nginx, or a
+        // local tunnel like cloudflared/ngrok during testing) so generated
+        // URLs and the client IP reflect X-Forwarded-* headers instead of
+        // the proxy's own loopback connection.
+        $middleware->trustProxies(at: '127.0.0.1');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

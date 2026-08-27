@@ -14,6 +14,28 @@ class SafeFileUpload
 
     public const PDF_EXTENSIONS = ['pdf'];
 
+    /**
+     * Size caps shared between Form Request validation rules (Laravel's
+     * 'max:<kb>' rule) and the maxKb argument passed into assertSafe()
+     * below, so the two never drift apart.
+     */
+    public const MAX_IMAGE_KB = 4096;
+
+    /**
+     * Ceiling used by ManagesContentItems::createMedia() for anything that
+     * isn't a PDF/video — deliberately looser than MAX_IMAGE_KB because it
+     * also covers the general media-library uploader (StoreMediaRequest),
+     * which already allows files up to MAX_DOCUMENT_KB at the Form Request
+     * layer before this second check runs.
+     */
+    public const MAX_MEDIA_LIBRARY_IMAGE_KB = 10240;
+
+    public const MAX_DOCUMENT_KB = 51200;
+
+    public const MAX_LOGO_KB = 2048;
+
+    public const MAX_FAVICON_KB = 512;
+
     private const MIME_BY_EXTENSION = [
         'jpg' => ['image/jpeg'],
         'jpeg' => ['image/jpeg'],
@@ -111,8 +133,13 @@ class SafeFileUpload
 
             $contents = @file_get_contents($file->getRealPath());
             if ($contents !== false) {
+                // Require a valid PDF delimiter/whitespace right after the token so a
+                // real `/JS(...)`, `/JS<<...>>`, etc. directive matches, while a bare
+                // 3-6 byte sequence that coincidentally occurs inside a compressed
+                // image/content stream (common in large scanned PDFs) does not.
                 foreach (self::PDF_DANGEROUS_TOKENS as $token) {
-                    if (str_contains($contents, $token)) {
+                    $pattern = '/'.preg_quote($token, '/').'(?=[\s\/\(\)<>\[\]%]|$)/';
+                    if (preg_match($pattern, $contents) === 1) {
                         $errors[] = 'يحتوي ملف PDF على محتوى تفاعلي أو برمجي غير مسموح به (مثل جافاسكربت أو إجراءات تلقائية).';
                         break;
                     }
@@ -126,7 +153,7 @@ class SafeFileUpload
     }
 
     /**
-     * Generate WebP/AVIF variants next to a stored image for smaller,
+     * Generate a WebP variant next to a stored image for smaller,
      * modern-format delivery. Returns a map of format => relative path
      * for whichever variants were successfully created.
      */
@@ -168,13 +195,6 @@ class SafeFileUpload
             $relative = $baseDir.$pathInfo['filename'].'.webp';
             if (imagewebp($source, Storage::disk($disk)->path($relative), 82)) {
                 $variants['webp'] = $relative;
-            }
-        }
-
-        if ($info['mime'] !== 'image/avif' && function_exists('imageavif')) {
-            $relative = $baseDir.$pathInfo['filename'].'.avif';
-            if (@imageavif($source, Storage::disk($disk)->path($relative), 55)) {
-                $variants['avif'] = $relative;
             }
         }
 

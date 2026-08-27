@@ -49,7 +49,8 @@
                         @if($item->is_featured)<span class="text-amber-500">★</span>@endif
                         <span class="text-xs text-slate-400">{{ $item->published_at?->translatedFormat('j M Y') ?? '—' }}</span>
                     </div>
-                    <p class="mt-2 text-sm leading-6 text-slate-700">{{ \Illuminate\Support\Str::limit($item->body, 200) }}</p>
+                    <p class="mt-2 font-semibold text-slate-900">{{ $item->title }}</p>
+                    <p class="mt-1 text-sm leading-6 text-slate-700">{{ \Illuminate\Support\Str::limit($item->body, 200) }}</p>
                 </div>
                 <div class="flex shrink-0 flex-col items-end gap-1 whitespace-nowrap text-sm">
                     @if($item->trashed())

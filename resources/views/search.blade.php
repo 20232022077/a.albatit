@@ -10,7 +10,7 @@
 <main class="mx-auto max-w-5xl px-5 py-12">
     <h1 class="text-3xl font-bold">نتائج البحث</h1>
     <form action="{{ route('search') }}" class="mt-6 flex rounded-xl border border-slate-300 bg-white p-1 focus-within:ring-2 focus-within:ring-emerald-600 focus-within:ring-offset-1">
-        <input name="q" value="{{ $query }}" class="min-w-0 flex-1 border-0 px-4 focus:ring-0" placeholder="ابحث في المحتوى">
+        <input name="q" value="{{ $query }}" aria-label="ابحث في المحتوى" class="min-w-0 flex-1 border-0 px-4 focus:ring-0" placeholder="ابحث في المحتوى">
         <button class="rounded-lg bg-emerald-700 px-5 py-2 text-white">بحث</button>
     </form>
     <p class="mt-5 text-sm text-slate-500">{{ $query ? "نتائج البحث عن: {$query}" : 'أدخل عبارة للبحث.' }}</p>

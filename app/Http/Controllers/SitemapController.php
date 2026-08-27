@@ -51,6 +51,7 @@ class SitemapController extends Controller
             'lecture' => 'lectures.show',
             'reflection' => 'reflections.show',
             'program' => 'programs.show',
+            'wall_post' => 'wall.show',
         ];
 
         foreach ($typeRoutes as $type => $routeName) {

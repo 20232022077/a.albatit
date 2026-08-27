@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\SafeFileUpload;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreMediaRequest extends FormRequest
@@ -15,7 +16,7 @@ class StoreMediaRequest extends FormRequest
     {
         return [
             'files' => ['required', 'array', 'min:1'],
-            'files.*' => ['required', 'file', 'mimes:jpg,jpeg,png,gif,webp,bmp,avif,pdf', 'max:51200'],
+            'files.*' => ['required', 'file', 'mimes:jpg,jpeg,png,gif,webp,bmp,avif,pdf', 'max:'.SafeFileUpload::MAX_DOCUMENT_KB],
         ];
     }
 }

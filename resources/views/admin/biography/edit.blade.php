@@ -27,6 +27,29 @@
         </div>
 
         <div>
+            <h2 class="text-lg font-bold">معلومات أساسية</h2>
+            <div class="mt-3 grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label for="field-city" class="text-sm font-medium">المدينة</label>
+                    <input id="field-city" name="city" value="{{ old('city', $biography?->contentItem?->meta['city'] ?? null) }}" class="mt-1 w-full rounded border-slate-300">
+                </div>
+                <div>
+                    <label for="field-birth_year_hijri" class="text-sm font-medium">سنة الميلاد (هجري)</label>
+                    <input id="field-birth_year_hijri" name="birth_year_hijri" value="{{ old('birth_year_hijri', $biography?->contentItem?->meta['birth_year_hijri'] ?? null) }}" class="mt-1 w-full rounded border-slate-300">
+                </div>
+                <div>
+                    <label for="field-contact_email" class="text-sm font-medium">البريد الإلكتروني</label>
+                    <input id="field-contact_email" type="email" dir="ltr" name="contact_email" value="{{ old('contact_email', $biography?->contentItem?->meta['contact_email'] ?? null) }}" class="mt-1 w-full rounded border-slate-300">
+                </div>
+                <div>
+                    <label for="field-contact_phone" class="text-sm font-medium">الجوال</label>
+                    <input id="field-contact_phone" dir="ltr" name="contact_phone" value="{{ old('contact_phone', $biography?->contentItem?->meta['contact_phone'] ?? null) }}" class="mt-1 w-full rounded border-slate-300">
+                </div>
+            </div>
+            <p class="mt-1 text-xs text-slate-500">تظهر هذه المعلومات في بطاقة "معلومات أساسية" بصفحة السيرة الذاتية — أي حقل تتركه فارغًا لا يظهر.</p>
+        </div>
+
+        <div>
             <label for="field-body" class="text-sm font-medium">النص التفصيلي</label>
             <textarea id="field-body" name="body" rows="6" class="mt-1 w-full rounded border-slate-300">{{ old('body', $biography?->contentItem?->body) }}</textarea>
         </div>

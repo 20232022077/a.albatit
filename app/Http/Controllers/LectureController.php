@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasSiblingNavigation;
 use App\Http\Controllers\Concerns\ResolvesContentSlug;
 use App\Models\Category;
 use App\Models\ContentItem;
@@ -13,7 +14,7 @@ use Illuminate\View\View;
 
 class LectureController extends Controller
 {
-    use ResolvesContentSlug;
+    use HasSiblingNavigation, ResolvesContentSlug;
 
     private const SORTS = [
         'newest' => ['published_at', 'desc'],
@@ -28,7 +29,7 @@ class LectureController extends Controller
 
         $items = ContentItem::published()
             ->ofType('lecture')
-            ->with(['categories', 'media'])
+            ->with(['categories', 'media', 'lecture'])
             ->when($request->filled('category_id'), fn (Builder $q) => $q->whereHas(
                 'categories', fn (Builder $c) => $c->where('categories.id', $request->integer('category_id'))
             ))
@@ -57,6 +58,8 @@ class LectureController extends Controller
             return $result;
         }
 
-        return view('lectures.show', ['item' => $result]);
+        $siblings = $this->siblingNavigation(fn () => ContentItem::published()->ofType('lecture'), $result);
+
+        return view('lectures.show', ['item' => $result, ...$siblings]);
     }
 }

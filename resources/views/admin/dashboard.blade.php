@@ -36,7 +36,7 @@
             @endforelse
         </div>
         @can('permission', 'activity_logs.view')
-            <a href="{{ route('admin.section', 'activity-logs') }}" class="mt-4 inline-block text-sm text-emerald-700">عرض سجل العمليات كاملًا ←</a>
+            <a href="{{ route('admin.activity-logs.index') }}" class="mt-4 inline-block text-sm text-emerald-700">عرض سجل العمليات كاملًا ←</a>
         @endcan
     </div>
 </main>

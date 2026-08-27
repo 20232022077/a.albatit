@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasSiblingNavigation;
 use App\Http\Controllers\Concerns\ResolvesContentSlug;
 use App\Models\Category;
 use App\Models\ContentItem;
@@ -13,7 +14,7 @@ use Illuminate\View\View;
 
 class ReflectionController extends Controller
 {
-    use ResolvesContentSlug;
+    use HasSiblingNavigation, ResolvesContentSlug;
 
     private const SORTS = [
         'newest' => ['published_at', 'desc'],
@@ -57,6 +58,8 @@ class ReflectionController extends Controller
             return $result;
         }
 
-        return view('reflections.show', ['item' => $result]);
+        $siblings = $this->siblingNavigation(fn () => ContentItem::published()->ofType('reflection'), $result);
+
+        return view('reflections.show', ['item' => $result, ...$siblings]);
     }
 }

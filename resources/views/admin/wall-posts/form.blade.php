@@ -9,8 +9,14 @@
         @if($item->exists) @method('PUT') @endif
 
         <div>
+            <label for="field-title" class="text-sm font-medium">العنوان</label>
+            <input id="field-title" name="title" value="{{ old('title', $item->title) }}" required maxlength="255" class="mt-1 w-full rounded border-slate-300">
+            @error('title')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+        </div>
+
+        <div>
             <label for="field-text" class="text-sm font-medium">النص</label>
-            <textarea id="field-text" name="text" rows="5" maxlength="2000" required class="mt-1 w-full rounded border-slate-300">{{ old('text', $item->body) }}</textarea>
+            <textarea id="field-text" name="text" rows="8" maxlength="5000" required class="mt-1 w-full rounded border-slate-300">{{ old('text', $item->body) }}</textarea>
             @error('text')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
         </div>
 
@@ -19,6 +25,12 @@
             @if($cover = $item->coverImage())<img loading="lazy" src="{{ $cover->displayUrl() }}" alt="" class="mt-2 h-24 w-24 rounded-lg object-cover">@endif
             <input type="file" name="cover_image" accept="image/*" class="mt-2 w-full text-sm">
             @error('cover_image')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
+            @if($cover)
+                <label class="mt-2 flex items-center gap-2 text-sm text-red-700">
+                    <input type="checkbox" name="remove_cover_image" value="1">
+                    حذف الصورة الحالية
+                </label>
+            @endif
         </div>
 
         <div>

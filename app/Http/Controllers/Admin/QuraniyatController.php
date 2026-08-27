@@ -132,7 +132,7 @@ class QuraniyatController extends Controller
 
             $this->syncCategories($item, $data['category_ids'] ?? []);
             $this->syncTags($item, $data['tags'] ?? '');
-            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'quraniyat', $request->user()->id);
+            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'quraniyat', $request->user()->id, $request->boolean('remove_cover_image'));
             $this->replaceMediaCollection($item, $request->file('attachment'), 'attachment', 'quraniyat', $request->user()->id);
         });
 

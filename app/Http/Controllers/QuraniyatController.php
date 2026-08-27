@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasSiblingNavigation;
 use App\Http\Controllers\Concerns\ResolvesContentSlug;
 use App\Models\ContentItem;
 use App\Support\SiteSettings;
@@ -12,7 +13,7 @@ use Illuminate\View\View;
 
 class QuraniyatController extends Controller
 {
-    use ResolvesContentSlug;
+    use HasSiblingNavigation, ResolvesContentSlug;
 
     private const SECTION_CATEGORY_SLUG = 'quraniyat';
 
@@ -47,6 +48,11 @@ class QuraniyatController extends Controller
             return $result;
         }
 
-        return view('quraniyat.show', ['item' => $result]);
+        $siblings = $this->siblingNavigation(
+            fn () => ContentItem::published()->inCategory(self::SECTION_CATEGORY_SLUG),
+            $result
+        );
+
+        return view('quraniyat.show', ['item' => $result, ...$siblings]);
     }
 }

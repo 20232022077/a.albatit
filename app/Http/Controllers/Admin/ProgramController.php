@@ -137,7 +137,7 @@ class ProgramController extends Controller
 
             $this->syncCategories($item, $data['category_ids'] ?? []);
             $this->syncTags($item, $data['tags'] ?? '');
-            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'programs', $request->user()->id);
+            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'programs', $request->user()->id, $request->boolean('remove_cover_image'));
         });
 
         $this->recordActivity('programs.updated', $item);
@@ -200,8 +200,4 @@ class ProgramController extends Controller
         abort_unless($item->type === 'program', 404);
     }
 
-    private function syncCategories(ContentItem $item, array $categoryIds): void
-    {
-        $item->categories()->sync($categoryIds);
-    }
 }

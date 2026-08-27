@@ -30,9 +30,20 @@ class ApplyContentSecurityPolicy
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
-            "img-src 'self' data:",
+            // 'blob:' is needed for the admin book form's client-side PDF
+            // cover preview (URL.createObjectURL on the canvas-rendered
+            // page) — without it the browser silently blocks that <img>.
+            "img-src 'self' data: blob:",
             "font-src 'self' https://fonts.bunny.net",
-            "style-src 'self' 'unsafe-inline'",
+            // Without the bunny.net origin here, the <link rel="stylesheet">
+            // that declares the @font-face rules is blocked by the browser
+            // (font-src alone only covers the font files themselves), so
+            // the Tajawal webfont silently fails to load site-wide. No
+            // 'unsafe-inline': every decorative background that used to be
+            // an inline style="" attribute is now a named utility class in
+            // resources/css/app.css (bg-dot-grid-*), and nothing else in
+            // the app emits inline styles or <style> blocks.
+            "style-src 'self' https://fonts.bunny.net",
             'script-src '.$this->scriptSources(),
             'connect-src '.$this->connectSources(),
         ];
@@ -46,15 +57,18 @@ class ApplyContentSecurityPolicy
      * All application JavaScript ships as a same-origin Vite build
      * (resources/js/app.js, compiled to public/build/...), and every inline
      * onclick/onchange handler has been moved to data-attributes handled
-     * there — so script-src can stay strict with no 'unsafe-inline'. Local
-     * development additionally allows the Vite dev server for HMR when
-     * `npm run dev` is used instead of a production build.
+     * there — so script-src can stay strict with no 'unsafe-inline'.
+     * 'wasm-unsafe-eval' only permits WebAssembly.instantiate (used by the
+     * admin book form's client-side PDF-to-cover-image rendering); it does
+     * not allow eval() or Function() of JS strings. Local development
+     * additionally allows the Vite dev server for HMR when `npm run dev`
+     * is used instead of a production build.
      */
     private function scriptSources(): string
     {
         return app()->environment('local')
-            ? "'self' http://localhost:5173 http://127.0.0.1:5173"
-            : "'self'";
+            ? "'self' 'wasm-unsafe-eval' http://localhost:5173 http://127.0.0.1:5173"
+            : "'self' 'wasm-unsafe-eval'";
     }
 
     private function connectSources(): string

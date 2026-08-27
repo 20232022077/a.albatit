@@ -137,7 +137,7 @@ class ReflectionController extends Controller
 
             $this->syncCategories($item, $data['category_ids'] ?? []);
             $this->syncTags($item, $data['tags'] ?? '');
-            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'reflections', $request->user()->id);
+            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'reflections', $request->user()->id, $request->boolean('remove_cover_image'));
         });
 
         $this->recordActivity('reflections.updated', $item);
@@ -188,8 +188,4 @@ class ReflectionController extends Controller
         abort_unless($item->type === 'reflection', 404);
     }
 
-    private function syncCategories(ContentItem $item, array $categoryIds): void
-    {
-        $item->categories()->sync($categoryIds);
-    }
 }

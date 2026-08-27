@@ -6,12 +6,194 @@
 @source "../**/*.js";
 @source "../**/*.vue";
 
+/*
+ * ============================================================================
+ * DESIGN TOKENS — centralized visual identity
+ * ============================================================================
+ * Everything below is pure Tailwind v4 theme configuration (CSS custom
+ * properties), not new CSS rules. It does not touch any Blade/PHP file,
+ * route, query, or behavior — only the *values* that existing utility
+ * classes (bg-emerald-700, rounded-2xl, shadow-lg, text-red-700, …) already
+ * used everywhere in the app resolve to. Because every one of those classes
+ * is already applied across ~60 view files (public + admin), redefining the
+ * token here is what makes the identity apply site-wide without touching
+ * each file individually — exactly the "one central source of truth"
+ * instruction. New semantic aliases (--color-primary, --color-accent, …)
+ * are also defined for direct use going forward.
+ *
+ * Palette source: Deep Emerald #0B5D4B (primary), Deep Forest #073F34
+ * (primary-dark), Soft Emerald #2F8F7A (primary-light), Muted Gold #C8A45D
+ * (accent, used sparingly). The emerald/amber/slate/red scales below are
+ * full 11-step ramps built around those exact anchor values so every
+ * existing weight (50…950) already in use resolves to a coherent, smooth
+ * progression instead of Tailwind's stock palette.
+ */
 @theme {
     --font-sans: 'Tajawal', 'Noto Kufi Arabic', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* ---- Semantic aliases (new, additive — safe to adopt gradually) ---- */
+    --color-primary: #0B5D4B;
+    --color-primary-dark: #073F34;
+    --color-primary-light: #2F8F7A;
+    --color-primary-deeper: #052F28;
+
+    --color-accent: #C8A45D;
+    --color-accent-light: #D6BB7A;
+
+    --color-bg: #F8FAF9;
+    --color-surface: #FFFFFF;
+    --color-surface-soft: #E8F1EE;
+    --color-section: #F1F6F3;
+
+    --color-ink: #17231F;
+    --color-ink-secondary: #5D6B66;
+    --color-ink-muted: #87938E;
+    --color-ink-on-dark: #FFFFFF;
+    --color-ink-on-dark-secondary: #D5E4DF;
+
+    --color-success: #237A57;
+    --color-warning: #B7791F;
+    --color-error: #B42318;
+    --color-info: #287A9A;
+
+    /* ---- emerald: remapped to the brand green (used ~everywhere already) ---- */
+    --color-emerald-50: #EFF7F4;
+    --color-emerald-100: #DAEEE7;
+    --color-emerald-200: #B5DDCF;
+    --color-emerald-300: #8BC8B4;
+    --color-emerald-400: #5FAD96;
+    --color-emerald-500: #2F8F7A;
+    --color-emerald-600: #1D7863;
+    --color-emerald-700: #0B5D4B;
+    --color-emerald-800: #094B3D;
+    --color-emerald-900: #073F34;
+    --color-emerald-950: #052F28;
+
+    /* ---- amber: remapped to the muted-gold accent (kept for sparse use) ---- */
+    --color-amber-50: #FBF7EE;
+    --color-amber-100: #F5EBD6;
+    --color-amber-200: #EBD9B0;
+    --color-amber-300: #E0C68A;
+    --color-amber-400: #D6BB7A;
+    --color-amber-500: #C8A45D;
+    --color-amber-600: #AD8A47;
+    --color-amber-700: #8F7038;
+    --color-amber-800: #715829;
+    --color-amber-900: #54401D;
+    --color-amber-950: #382B13;
+
+    /* ---- slate: remapped to a sage-tinted neutral ink/background ramp ---- */
+    --color-slate-50: #F8FAF9;
+    --color-slate-100: #F1F6F3;
+    --color-slate-200: #E3EAE7;
+    --color-slate-300: #C9D4CF;
+    --color-slate-400: #A8B6B0;
+    --color-slate-500: #87938E;
+    --color-slate-600: #5D6B66;
+    --color-slate-700: #3E4B46;
+    --color-slate-800: #28332E;
+    --color-slate-900: #17231F;
+    --color-slate-950: #0D1512;
+
+    /* ---- red: remapped to the brand's error tone ---- */
+    --color-red-50: #FDF0EE;
+    --color-red-100: #FADDD8;
+    --color-red-200: #F3B7AE;
+    --color-red-300: #EB9084;
+    --color-red-400: #DC6152;
+    --color-red-500: #C93F2E;
+    --color-red-600: #B42318;
+    --color-red-700: #931D14;
+    --color-red-800: #741710;
+    --color-red-900: #56110C;
+    --color-red-950: #380B08;
+
+    /* ---- radius: nudged to the spec'd sm/md/lg/xl scale (rounded-lg was
+       already ~8px, so it's untouched; 2xl is the most-used card radius) ---- */
+    --radius-xl: 0.875rem;   /* 14px */
+    --radius-2xl: 1.25rem;   /* 20px */
+    --radius-3xl: 1.75rem;   /* 28px */
+
+    /* ---- shadows: soft, tinted with the dark brand green instead of
+       flat black, at the same offsets Tailwind's defaults already use ---- */
+    --shadow-sm: 0 1px 3px 0 rgba(7, 63, 52, 0.045), 0 1px 2px -1px rgba(7, 63, 52, 0.04);
+    --shadow-md: 0 4px 10px -2px rgba(7, 63, 52, 0.07), 0 2px 4px -2px rgba(7, 63, 52, 0.05);
+    --shadow-lg: 0 10px 25px -5px rgba(7, 63, 52, 0.09), 0 4px 10px -4px rgba(7, 63, 52, 0.06);
+    --shadow-xl: 0 18px 35px -8px rgba(7, 63, 52, 0.11), 0 8px 16px -6px rgba(7, 63, 52, 0.07);
+    --shadow-2xl: 0 24px 50px -12px rgba(7, 63, 52, 0.16);
+
+    /* ---- motion: smooth, subtle default for any bare `transition` class ---- */
+    --default-transition-duration: 220ms;
+    --default-transition-timing-function: ease;
+}
+
+/* The brand's signature diagonal gradient, for surfaces where a lighter
+   endpoint is fine (small accents/CTA-scale elements, not large text-bearing
+   sections — see bg-brand-gradient-deep below for those). */
+@utility bg-brand-gradient {
+    background-image: linear-gradient(135deg, #073F34 0%, #0B5D4B 55%, #2F8F7A 100%);
+}
+
+/* Same family, capped within the dark half of the ramp (deeper -> dark ->
+   primary, never reaching the much lighter primary-light stop) so white/gold
+   hero text keeps full contrast everywhere across a wide, short section —
+   used by home hero, partials/page-hero and the biography hero. */
+@utility bg-brand-gradient-deep {
+    background-image: linear-gradient(135deg, #052F28 0%, #073F34 50%, #0B5D4B 100%);
+}
+
+/* The faint dotted-grid texture behind hero sections (home + partials/page-hero).
+   Named utilities instead of an inline style="" attribute so the CSP's
+   style-src doesn't need 'unsafe-inline' to render them. */
+@utility bg-dot-grid-28 {
+    background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+    background-size: 28px 28px;
+}
+
+@utility bg-dot-grid-26 {
+    background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+    background-size: 26px 26px;
 }
 
 /* The base direction is declared in the layout; use logical CSS properties for RTL-safe components. */
 :root {
     direction: rtl;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Native cross-fade between full page navigations (Chromium/Edge today,
+   ignored elsewhere — no JS, no risk). */
+@view-transition {
+    navigation: auto;
+}
+
+/*
+ * Scroll-reveal: sections fade/rise into view as the visitor scrolls.
+ * app.js only ever adds these classes to sections that are already
+ * off-screen at load time (never to what's already visible), and adds
+ * .reveal-pending / .reveal-init a frame apart so the hide-then-animate
+ * sequence never itself flashes. Content with JavaScript disabled or
+ * blocked never gets these classes at all, so it just stays visible — the
+ * CSP here forbids inline scripts, which rules out the classic
+ * "no-js html class before paint" trick, so the animation is opt-in from
+ * script rather than opt-out from CSS.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    [data-reveal-scope] section.reveal-pending {
+        opacity: 0;
+        transform: translateY(28px);
+    }
+
+    [data-reveal-scope] section.reveal-init {
+        transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    }
+
+    [data-reveal-scope] section.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

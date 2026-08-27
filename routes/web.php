@@ -15,7 +15,6 @@ use App\Http\Controllers\Admin\QuraniyatController as AdminQuraniyatController;
 use App\Http\Controllers\Admin\ReflectionController as AdminReflectionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Admin\StaticAdminPageController;
 use App\Http\Controllers\Admin\TagController as AdminTagController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WallPostController as AdminWallPostController;
@@ -26,6 +25,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LectureController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\PublicStorageController;
 use App\Http\Controllers\QuranCentralityController;
 use App\Http\Controllers\QuraniyatController;
 use App\Http\Controllers\ReflectionController;
@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return app(HomeController::class)->index();
 })->name('home');
-Route::get('/search', [HomeController::class, 'search'])->name('search');
+Route::get('/search', [HomeController::class, 'search'])->middleware('throttle:30,1')->name('search');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/robots.txt', [RobotsController::class, 'index'])->name('robots');
 Route::get('/biography', [PublicBiographyController::class, 'show'])->name('biography.show');
@@ -45,6 +45,7 @@ Route::get('/quran-centrality', [QuranCentralityController::class, 'index'])->na
 Route::get('/quran-centrality/{slug}', [QuranCentralityController::class, 'show'])->name('quran-centrality.show');
 Route::get('/books', [BookController::class, 'index'])->name('books.index');
 Route::get('/books/{slug}', [BookController::class, 'show'])->name('books.show');
+Route::post('/books/{item}/like', [BookController::class, 'like'])->name('books.like');
 Route::get('/quraniyat', [QuraniyatController::class, 'index'])->name('quraniyat.index');
 Route::get('/quraniyat/{slug}', [QuraniyatController::class, 'show'])->name('quraniyat.show');
 Route::get('/lectures', [LectureController::class, 'index'])->name('lectures.index');
@@ -54,7 +55,11 @@ Route::get('/reflections/{slug}', [ReflectionController::class, 'show'])->name('
 Route::get('/programs', [ProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{slug}', [ProgramController::class, 'show'])->name('programs.show');
 Route::get('/wall', [WallController::class, 'index'])->name('wall.index');
+Route::get('/wall/{slug}', [WallController::class, 'show'])->name('wall.show');
 Route::get('/pdf/{media}', [PdfController::class, 'show'])->name('pdf.show');
+// Only reached when the web server can't serve /storage as a real static
+// path (e.g. no symlink support on some hosts) — see PublicStorageController.
+Route::get('/storage/{path}', [PublicStorageController::class, 'show'])->where('path', '.*')->name('storage.fallback');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -197,6 +202,5 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/{id}/restore', [AdminMediaController::class, 'restore'])->name('restore');
             Route::delete('/{id}/force', [AdminMediaController::class, 'forceDestroy'])->name('force-destroy');
         });
-        Route::get('{section}', StaticAdminPageController::class)->whereIn('section', ['content'])->name('section');
     });
 });

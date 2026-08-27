@@ -146,7 +146,7 @@ class BookController extends Controller
 
             $this->syncCategories($item, $data['category_ids'] ?? []);
             $this->syncTags($item, $data['tags'] ?? '');
-            $this->replaceBookFile($book, 'cover_media_id', $request->file('cover_image'), $request->user()->id);
+            $this->replaceBookFile($book, 'cover_media_id', $request->file('cover_image'), $request->user()->id, $request->boolean('remove_cover_image'));
             $this->replaceBookFile($book, 'pdf_media_id', $request->file('pdf_file'), $request->user()->id);
         });
 
@@ -198,20 +198,20 @@ class BookController extends Controller
         abort_unless($item->type === 'book', 404);
     }
 
-    private function syncCategories(ContentItem $item, array $categoryIds): void
+    private function replaceBookFile(Book $book, string $column, ?UploadedFile $file, int $userId, bool $remove = false): void
     {
-        $item->categories()->sync($categoryIds);
-    }
-
-    private function replaceBookFile(Book $book, string $column, ?UploadedFile $file, int $userId): void
-    {
-        if (! $file) {
+        if (! $file && ! $remove) {
             return;
         }
 
         $oldId = $book->{$column};
-        $media = $this->createMedia($file, 'books', $userId);
-        $book->update([$column => $media->id]);
+
+        if ($file) {
+            $media = $this->createMedia($file, 'books', $userId);
+            $book->update([$column => $media->id]);
+        } else {
+            $book->update([$column => null]);
+        }
 
         if ($oldId && $old = Media::find($oldId)) {
             Storage::disk($old->disk)->delete($old->path);

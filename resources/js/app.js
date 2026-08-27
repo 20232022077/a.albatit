@@ -1,6 +1,37 @@
 import './bootstrap';
 
 /**
+ * Scroll-reveal for public page sections (see [data-reveal-scope] in
+ * layouts/public.blade.php and the matching CSS in app.css). A <section>
+ * that's already on screen at load time is left completely alone — only
+ * sections still below the fold get hidden-then-revealed, so there's never
+ * a flash of content disappearing or popping in unstyled.
+ */
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.08, rootMargin: '0px 0px -80px 0px' }
+    );
+
+    document.querySelectorAll('[data-reveal-scope] section').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const alreadyVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        if (alreadyVisible) return;
+
+        el.classList.add('reveal-pending');
+        requestAnimationFrame(() => el.classList.add('reveal-init'));
+        observer.observe(el);
+    });
+}
+
+/**
  * Public site header: hamburger toggle for the mobile nav menu.
  */
 document.querySelectorAll('[data-mobile-menu-toggle]').forEach((toggle) => {
@@ -127,3 +158,73 @@ document.addEventListener('submit', (event) => {
     submitter.setAttribute('aria-busy', 'true');
     submitter.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span>' + submitter.dataset.originalLabel + '</span></span>';
 });
+
+/**
+ * Admin book form: if the admin doesn't pick a cover image themselves,
+ * render the first page of the selected PDF to a canvas and use that as
+ * the cover file — done entirely client-side (pdf.js loaded on demand) so
+ * the server needs no PDF-rendering dependency (Imagick/Ghostscript aren't
+ * installed). A cover the admin picks by hand always takes priority and is
+ * never overwritten by this.
+ */
+(() => {
+    const scope = document.querySelector('[data-book-cover-source]');
+    if (!scope) return;
+
+    const pdfInput = scope.querySelector('[data-pdf-input]');
+    const coverInput = scope.querySelector('[data-cover-input]');
+    const preview = scope.querySelector('[data-cover-preview]');
+    const autoNote = scope.querySelector('[data-cover-auto-note]');
+    if (!pdfInput || !coverInput || !preview) return;
+
+    let coverManuallyChosen = coverInput.files.length > 0;
+
+    const showPreview = (blobOrFile, isAuto) => {
+        preview.src = URL.createObjectURL(blobOrFile);
+        preview.classList.remove('hidden');
+        autoNote?.classList.toggle('hidden', !isAuto);
+    };
+
+    coverInput.addEventListener('change', () => {
+        if (coverInput.files.length === 0) return;
+        coverManuallyChosen = true;
+        showPreview(coverInput.files[0], false);
+    });
+
+    pdfInput.addEventListener('change', async () => {
+        if (coverManuallyChosen || pdfInput.files.length === 0) return;
+
+        try {
+            const [{ getDocument, GlobalWorkerOptions }, workerSrc] = await Promise.all([
+                import('pdfjs-dist'),
+                import('pdfjs-dist/build/pdf.worker.min.mjs?url').then((m) => m.default),
+            ]);
+            GlobalWorkerOptions.workerSrc = workerSrc;
+
+            const data = await pdfInput.files[0].arrayBuffer();
+            const pdf = await getDocument({ data }).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 1.5 });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+            const blob = await new Promise((resolve, reject) => {
+                canvas.toBlob((result) => (result ? resolve(result) : reject(new Error('toBlob failed'))), 'image/jpeg', 0.85);
+            });
+
+            const generatedCover = new File([blob], 'auto-cover.jpg', { type: 'image/jpeg' });
+            const transfer = new DataTransfer();
+            transfer.items.add(generatedCover);
+            coverInput.files = transfer.files;
+
+            showPreview(blob, true);
+        } catch {
+            // PDF rendering isn't guaranteed on every browser/file; the admin
+            // can always attach a cover manually, and cover_image is optional.
+        }
+    });
+})();
+

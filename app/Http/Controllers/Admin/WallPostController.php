@@ -63,7 +63,7 @@ class WallPostController extends Controller
             $item = ContentItem::create([
                 'author_id' => $request->user()->id,
                 'type' => 'wall_post',
-                'title' => Str::limit($data['text'], 60, ''),
+                'title' => $data['title'],
                 'slug' => 'wall-'.Str::uuid(),
                 'body' => $data['text'],
                 'status' => $data['status'],
@@ -106,7 +106,7 @@ class WallPostController extends Controller
 
         DB::transaction(function () use ($data, $request, $item) {
             $item->update([
-                'title' => Str::limit($data['text'], 60, ''),
+                'title' => $data['title'],
                 'body' => $data['text'],
                 'status' => $data['status'],
                 'is_featured' => $request->boolean('is_featured'),
@@ -118,7 +118,7 @@ class WallPostController extends Controller
             $wallPost = $item->wallPost ?? WallPost::create(['content_item_id' => $item->id]);
             $wallPost->update(['is_pinned' => $request->boolean('is_pinned')]);
 
-            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'wall', $request->user()->id);
+            $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'wall', $request->user()->id, $request->boolean('remove_cover_image'));
         });
 
         $this->recordActivity('wall_posts.updated', $item);
