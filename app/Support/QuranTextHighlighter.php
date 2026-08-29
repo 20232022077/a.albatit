@@ -93,16 +93,22 @@ class QuranTextHighlighter
      *  used to re-render the citation in a fixed "(سورة: رقم)" order
      *  regardless of how the admin originally typed it (the raw text is
      *  often "رقم سورة:", reversed from the conventional reading order).
-     *  "آل" itself is matched two ways — literal "آ" (precomposed U+0622),
-     *  or "ا" plus one-or-more combining marks (\p{Mn}+, e.g. U+0653 madda
-     *  above) — because real admin-typed text sometimes stores that letter
-     *  in NFD-decomposed form rather than the single precomposed character,
-     *  and only a byte-identical match would otherwise recognise it. The
-     *  \p{Mn}+ (not \p{Mn}*) is required: a bare "ا" immediately followed by
-     *  "ل" with zero marks between them is just the ordinary "ال" definite
-     *  article prefixing an unrelated single-word surah name (القصص,
-     *  الكريم, …), not this decomposed "آ". */
-    private const CITATION_PATTERN = '/(?:([٠-٩]+)\s*)?((?:آ|ا\p{Mn}+)ل\s+(?:(?!\p{Nd})\p{Arabic})+|(?:(?!\p{Nd})\p{Arabic})+)\s*:/u';
+     *  "آل" itself is matched three ways — literal "آ" (precomposed
+     *  U+0622), "ا" plus one-or-more combining marks (\p{Mn}+, e.g. U+0653
+     *  madda above), or a bare U+0653 with no base "ا" at all — because
+     *  real admin-typed text sometimes stores that letter in NFD-decomposed
+     *  form rather than the single precomposed character, and only a
+     *  byte-identical match would otherwise recognise it. The \p{Mn}+ (not
+     *  \p{Mn}*) is required: a bare "ا" immediately followed by "ل" with
+     *  zero marks between them is just the ordinary "ال" definite article
+     *  prefixing an unrelated single-word surah name (القصص, الكريم, …),
+     *  not this decomposed "آ". The bare-U+0653 alternative exists for a
+     *  real copy/paste corruption seen in production content: the base "ا"
+     *  dropped entirely, leaving an orphaned madda floating right before
+     *  "ل" — deliberately narrowed to that one exact mark (not any \p{Mn})
+     *  so it can't also swallow an unrelated word that merely ends in some
+     *  other diacritic immediately before an unrelated "ل". */
+    private const CITATION_PATTERN = '/(?:([٠-٩]+)\s*)?((?:آ|ا\p{Mn}+|\x{0653})ل\s+(?:(?!\p{Nd})\p{Arabic})+|(?:(?!\p{Nd})\p{Arabic})+)\s*:/u';
 
     /** Consecutive marked words separated by at most this many unmarked
      *  words are treated as the same verse run. */
@@ -117,14 +123,31 @@ class QuranTextHighlighter
 
     /** How far back (in words) a run's start may reach past its first
      *  marked word — short, since this is only meant to catch a verse's
-     *  own opening connective, not swallow the author's lead-in prose. */
-    private const LEAD_IN_TOLERANCE = 1;
+     *  own opening connective(s), not swallow the author's lead-in prose.
+     *  2 rather than 1: a verse's own genuine opening word occasionally
+     *  carries no marker itself (e.g. "إِنِّي" — plain kasra/shadda only)
+     *  and only the word *after* it does, so a 1-word reach can strand the
+     *  verse's real first word outside the bracket. Still short enough that
+     *  the sentence-end/no-letter checks in extendStartBack() catch the
+     *  common case of admin prose right before a quote either way. */
+    private const LEAD_IN_TOLERANCE = 2;
 
     /** A run must contain at least this many individually-marked words to
      *  be wrapped — filters out a single incidentally-voweled word. Waived
      *  when every single word in the text being scanned is marked (see
      *  $allWordsMarked in runHighlight()): a lone word like "ٱقۡرَأۡ" quoted
-     *  by itself on its own line is still unambiguously a verse. */
+     *  by itself on its own line is still unambiguously a verse. Also
+     *  waived for the last group when a genuine citation immediately
+     *  follows it (see $extendLastRunToEnd in runHighlight()) — a real
+     *  "سورة: رقم"-shaped citation right after the text is strong enough
+     *  evidence on its own that a short verse with only one marked word
+     *  (some verses, by their own phonetic makeup, simply never carry a
+     *  second marker — e.g. "فَبِأَيِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ" has no
+     *  sukun letter or wasla-alif anywhere in it, in any correctly-typed
+     *  Uthmani rendering) is still a real verse rather than incidental
+     *  prose. Scoped to the *last* group only, not every group in a long
+     *  stretch of "between" text, so an unrelated marked word earlier in
+     *  ordinary prose ahead of some unrelated colon doesn't also qualify. */
     private const MIN_MARKED_WORDS = 2;
 
     private const VALID_ACCENTS = ['emerald', 'amber', 'slate'];
@@ -442,8 +465,11 @@ class QuranTextHighlighter
             // A lone ۝/۞/۩ is as unambiguous a signal as two ordinary marked
             // words — e.g. a short single-ayah line like "فَوَيْلٌ لِلْمُصَلِّينَ ۝ 4"
             // never gets a second marked word to clear MIN_MARKED_WORDS
-            // otherwise.
-            if (count($group) < self::MIN_MARKED_WORDS && ! $allWordsMarked && ! $groupHasAnchor) {
+            // otherwise. Likewise, the *last* group is waived when a real
+            // citation immediately follows the whole $text ($extendLastRunToEnd)
+            // — see MIN_MARKED_WORDS's docblock.
+            $citationBacked = $extendLastRunToEnd && $groupPos === $lastGroupPos;
+            if (count($group) < self::MIN_MARKED_WORDS && ! $allWordsMarked && ! $groupHasAnchor && ! $citationBacked) {
                 continue;
             }
 

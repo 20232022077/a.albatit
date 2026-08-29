@@ -64,6 +64,40 @@ class QuranTextHighlighterTest extends TestCase
         $this->assertStringContainsString('﴿بَلۡ نَتَّبِعُ', $out);
     }
 
+    public function test_a_two_word_lead_in_reaches_the_verses_own_unmarked_opening_word(): void
+    {
+        // "إِنِّي" (plain kasra/shadda only) is the verse's own first word,
+        // but only the word after it ("إِلَىٰ", via the dagger-alif) carries
+        // any marker -- a 1-word lead-in reach would strand "إِنِّي" outside
+        // the bracket even though it's grammatically part of the verse, not
+        // the author's own lead-in prose.
+        $out = $this->render('وصار يستقبله بثقة: إِنِّي ذَاهِبٌ إِلَىٰ رَبِّي سَيَهۡدِينِ ٩٩ الصَّافَّات :.');
+
+        $this->assertStringContainsString('﴿إِنِّي ذَاهِبٌ إِلَىٰ رَبِّي سَيَهۡدِينِ﴾', $out);
+        $this->assertStringNotContainsString('﴿بثقة', $out);
+    }
+
+    public function test_a_verse_with_only_one_marked_word_is_still_wrapped_when_a_citation_follows(): void
+    {
+        // "فَبِأَيِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ" (Ar-Rahman's repeated refrain)
+        // has no sukun letter or wasla-alif anywhere in it -- in any
+        // correctly-typed Uthmani rendering it carries exactly one marker
+        // (the "آ" in "ءَالَآءِ", stored decomposed -- alef U+0627 + combining
+        // madda U+0653, per real production content; built from the same
+        // codepoints here rather than hand-typed, since typing "آ" normally
+        // silently produces the precomposed U+0622 instead, which carries no
+        // marker at all and would defeat the point of this test), never a
+        // second marker, so it can never clear MIN_MARKED_WORDS on marker
+        // density alone. A genuine trailing citation is independently
+        // strong enough evidence.
+        $aaDecomposed = "\u{0627}\u{0653}";
+        $verse = "فَبِأَيِّ ءَالَ{$aaDecomposed}ءِ رَبِّكُمَا تُكَذِّبَانِ";
+        $out = $this->render("{$verse} الرَّحۡمَٰن :");
+
+        $this->assertStringContainsString("﴿{$verse}﴾", $out);
+        $this->assertStringContainsString('(الرَّحۡمَٰن)', $out);
+    }
+
     public function test_a_single_word_verse_alone_on_its_own_line_is_still_wrapped(): void
     {
         $out = $this->render('ٱقۡرَأۡ');
@@ -100,6 +134,21 @@ class QuranTextHighlighterTest extends TestCase
         $out = $this->render("وَهُمۡ يَعۡلَمُونَ ٧٨ {$decomposed} عِمۡرَان :");
 
         $this->assertStringContainsString("({$decomposed} عِمۡرَان: ٧٨)", $out);
+    }
+
+    public function test_a_two_word_surah_name_with_a_dropped_base_alef_is_still_matched(): void
+    {
+        // Real production content: "آل" typed with the base alef missing
+        // entirely, leaving only an orphaned combining madda (U+0653)
+        // floating right before "ل" — e.g. a copy/paste that dropped the
+        // first character. The citation boundary must still land in the
+        // right place instead of leaking the verse number and a fragment
+        // of "آل" inside the verse bracket.
+        $orphanedMadda = "\u{0653}\u{0644}";
+        $out = $this->render("وَهُمۡ يَعۡلَمُونَ ٦٤ {$orphanedMadda} عِمۡرَان :");
+
+        $this->assertStringContainsString('﴿وَهُمۡ يَعۡلَمُونَ﴾', $out);
+        $this->assertStringContainsString("({$orphanedMadda} عِمۡرَان: ٦٤)", $out);
     }
 
     public function test_the_definite_article_prefix_is_not_mistaken_for_a_decomposed_aal(): void

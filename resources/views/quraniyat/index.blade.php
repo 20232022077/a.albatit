@@ -24,7 +24,6 @@
             @forelse($items as $item)
                 <a href="{{ route('quraniyat.show', $item->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
                     <span class="absolute inset-x-6 top-0 z-10 h-px bg-gradient-to-l from-amber-400/70 via-amber-300/70 to-transparent"></span>
-                    <svg class="pointer-events-none absolute -left-3 -top-3 z-10 h-16 w-16 text-amber-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6 20.5V10.8a6 6 0 0 1 12 0v9.7"/><path d="M4.5 20.5h15"/></svg>
 
                     @if($cover = $item->coverImage())
                         <div class="aspect-[3/1] overflow-hidden">
