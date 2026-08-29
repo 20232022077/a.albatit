@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Book;
 use App\Models\ContentItem;
+use App\Models\Media;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\AccessControlSeeder;
@@ -32,7 +34,7 @@ class SecurityTest extends TestCase
     public function test_sql_injection_payload_in_search_does_not_error_or_leak_data(): void
     {
         $item = ContentItem::create(['type' => 'book', 'title' => 'كتاب عادي', 'slug' => 'normal-book', 'status' => 'published', 'published_at' => now()]);
-        \App\Models\Book::create(['content_item_id' => $item->id, 'author_name' => 'م']);
+        Book::create(['content_item_id' => $item->id, 'author_name' => 'م']);
 
         $payloads = [
             "' OR '1'='1",
@@ -73,7 +75,7 @@ class SecurityTest extends TestCase
             'type' => 'book', 'title' => $malicious, 'slug' => 'xss-book',
             'status' => 'published', 'published_at' => now(),
         ]);
-        \App\Models\Book::create(['content_item_id' => $item->id, 'author_name' => 'م']);
+        Book::create(['content_item_id' => $item->id, 'author_name' => 'م']);
 
         $response = $this->get('/books/xss-book');
         $response->assertOk();
@@ -84,11 +86,11 @@ class SecurityTest extends TestCase
     public function test_pdf_route_rejects_unpublished_documents_even_with_a_guessed_id(): void
     {
         $item = ContentItem::create(['type' => 'book', 'title' => 'كتاب مسودة', 'slug' => 'draft-pdf-book', 'status' => 'draft']);
-        $media = \App\Models\Media::create([
+        $media = Media::create([
             'disk' => 'local', 'path' => 'pdfs/books/fake.pdf', 'original_name' => 'fake.pdf',
             'mime_type' => 'application/pdf', 'size' => 100,
         ]);
-        \App\Models\Book::create(['content_item_id' => $item->id, 'author_name' => 'م', 'pdf_media_id' => $media->id]);
+        Book::create(['content_item_id' => $item->id, 'author_name' => 'م', 'pdf_media_id' => $media->id]);
         $item->media()->attach($media->id, ['collection' => 'attachment']);
 
         $this->get(route('pdf.show', $media))->assertNotFound();

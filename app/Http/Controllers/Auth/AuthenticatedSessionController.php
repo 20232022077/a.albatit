@@ -15,6 +15,7 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     private const MAX_ATTEMPTS = 5;
+
     private const DECAY_SECONDS = 60;
 
     public function create(): View|RedirectResponse

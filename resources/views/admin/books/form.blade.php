@@ -112,8 +112,9 @@
                 <input type="datetime-local" id="field-published_at" name="published_at" value="{{ old('published_at', $item->published_at?->format('Y-m-d\TH:i')) }}" class="mt-1 w-full rounded border-slate-300">
                 @error('published_at')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror
             </div>
-            <div class="flex items-end pb-2">
+            <div class="flex flex-col items-start justify-end gap-2 pb-2">
                 <label class="flex items-center gap-2"><input type="hidden" name="is_featured" value="0"><input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $item->is_featured))> كتاب مميز</label>
+                <label class="flex items-center gap-2"><input type="hidden" name="is_pinned" value="0"><input type="checkbox" name="is_pinned" value="1" @checked(old('is_pinned', $item->is_pinned))> تثبيت</label>
             </div>
         </div>
 

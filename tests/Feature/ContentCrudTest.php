@@ -2,8 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\Book;
 use App\Models\Category;
 use App\Models\ContentItem;
+use App\Models\Lecture;
+use App\Models\Program;
+use App\Models\ProgramEpisode;
+use App\Models\Reflection;
+use App\Models\WallPost;
 use Database\Seeders\AccessControlSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -65,7 +71,7 @@ class ContentCrudTest extends TestCase
             'pdf_file' => $this->fakePdf(),
         ]);
 
-        $book = \App\Models\Book::whereHas('contentItem', fn ($q) => $q->where('title', 'كتاب قابل للقراءة'))->firstOrFail();
+        $book = Book::whereHas('contentItem', fn ($q) => $q->where('title', 'كتاب قابل للقراءة'))->firstOrFail();
 
         $this->get(route('pdf.show', $book->pdf_media_id))->assertOk();
     }
@@ -232,7 +238,7 @@ class ContentCrudTest extends TestCase
         $admin = $this->userWithPermissions(['content.view', 'content.create', 'content.update', 'content.delete']);
 
         $item = ContentItem::create(['type' => 'book', 'title' => 'كتاب أصلي', 'slug' => 'original-book', 'status' => 'draft', 'author_id' => $admin->id]);
-        \App\Models\Book::create(['content_item_id' => $item->id, 'author_name' => 'مؤلف']);
+        Book::create(['content_item_id' => $item->id, 'author_name' => 'مؤلف']);
 
         $this->actingAs($admin)->post(route('admin.books.publish', $item))->assertRedirect();
         $this->assertSame('published', $item->fresh()->status);
@@ -257,7 +263,7 @@ class ContentCrudTest extends TestCase
         $admin = $this->userWithPermissions(['content.view', 'content.create', 'content.update']);
 
         $item = ContentItem::create(['type' => 'program', 'title' => 'برنامج أصلي', 'slug' => 'original-program', 'status' => 'draft', 'author_id' => $admin->id]);
-        \App\Models\Program::create(['content_item_id' => $item->id]);
+        Program::create(['content_item_id' => $item->id]);
 
         $response = $this->actingAs($admin)->put(route('admin.programs.update', $item), [
             'title' => 'برنامج أصلي',
@@ -335,7 +341,7 @@ class ContentCrudTest extends TestCase
         $admin = $this->userWithPermissions(['content.view', 'content.create', 'content.update', 'content.delete']);
 
         $item = ContentItem::create(['type' => 'reflection', 'title' => 'تأمل أصلي', 'slug' => 'original-reflection', 'status' => 'draft', 'author_id' => $admin->id]);
-        \App\Models\Reflection::create(['content_item_id' => $item->id]);
+        Reflection::create(['content_item_id' => $item->id]);
 
         $update = $this->actingAs($admin)->put(route('admin.reflections.update', $item), [
             'title' => 'تأمل أصلي', 'slug' => 'original-reflection', 'body' => 'نص التأمل', 'status' => 'draft',
@@ -360,7 +366,7 @@ class ContentCrudTest extends TestCase
         $admin = $this->userWithPermissions(['content.view', 'content.create', 'content.update', 'content.delete']);
 
         $item = ContentItem::create(['type' => 'lecture', 'title' => 'محاضرة أصلية', 'slug' => 'original-lecture', 'status' => 'draft', 'author_id' => $admin->id]);
-        \App\Models\Lecture::create(['content_item_id' => $item->id]);
+        Lecture::create(['content_item_id' => $item->id]);
 
         $update = $this->actingAs($admin)->put(route('admin.lectures.update', $item), [
             'title' => 'محاضرة أصلية', 'slug' => 'original-lecture', 'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'status' => 'draft',
@@ -385,7 +391,7 @@ class ContentCrudTest extends TestCase
         $admin = $this->userWithPermissions(['content.view', 'content.create', 'content.update', 'content.delete']);
 
         $item = ContentItem::create(['type' => 'wall_post', 'title' => 'منشور أصلي', 'slug' => 'wall-original', 'body' => 'نص', 'status' => 'draft', 'author_id' => $admin->id]);
-        \App\Models\WallPost::create(['content_item_id' => $item->id]);
+        WallPost::create(['content_item_id' => $item->id]);
 
         $update = $this->actingAs($admin)->put(route('admin.wall-posts.update', $item), [
             'title' => 'منشور أصلي', 'text' => 'نص محدث', 'status' => 'draft',
@@ -410,10 +416,10 @@ class ContentCrudTest extends TestCase
         $admin = $this->userWithPermissions(['content.view', 'content.create', 'content.update', 'content.delete']);
 
         $program = ContentItem::create(['type' => 'program', 'title' => 'برنامج للحلقات', 'slug' => 'program-for-episodes', 'status' => 'published', 'published_at' => now(), 'author_id' => $admin->id]);
-        \App\Models\Program::create(['content_item_id' => $program->id]);
+        Program::create(['content_item_id' => $program->id]);
 
         $episode = ContentItem::create(['type' => 'program_episode', 'title' => 'حلقة أصلية', 'slug' => 'original-episode', 'status' => 'draft', 'author_id' => $admin->id]);
-        \App\Models\ProgramEpisode::create(['content_item_id' => $episode->id, 'program_id' => $program->id, 'episode_number' => 1]);
+        ProgramEpisode::create(['content_item_id' => $episode->id, 'program_id' => $program->id, 'episode_number' => 1]);
 
         $update = $this->actingAs($admin)->put(route('admin.programs.episodes.update', [$program, $episode]), [
             'title' => 'حلقة أصلية', 'slug' => 'original-episode', 'episode_number' => 1,
@@ -437,7 +443,7 @@ class ContentCrudTest extends TestCase
     public function test_soft_deleted_content_is_hidden_from_public_listing_and_show_page(): void
     {
         $item = ContentItem::create(['type' => 'book', 'title' => 'كتاب محذوف', 'slug' => 'deleted-book', 'status' => 'published', 'published_at' => now()]);
-        \App\Models\Book::create(['content_item_id' => $item->id, 'author_name' => 'مؤلف']);
+        Book::create(['content_item_id' => $item->id, 'author_name' => 'مؤلف']);
         $item->delete();
 
         $this->get('/books')->assertDontSee('كتاب محذوف');
@@ -447,10 +453,10 @@ class ContentCrudTest extends TestCase
     public function test_unpublished_and_draft_content_returns_404_on_public_site(): void
     {
         $draft = ContentItem::create(['type' => 'book', 'title' => 'كتاب مسودة', 'slug' => 'draft-book', 'status' => 'draft']);
-        \App\Models\Book::create(['content_item_id' => $draft->id, 'author_name' => 'مؤلف']);
+        Book::create(['content_item_id' => $draft->id, 'author_name' => 'مؤلف']);
 
         $unpublished = ContentItem::create(['type' => 'book', 'title' => 'كتاب غير منشور', 'slug' => 'unpublished-book', 'status' => 'unpublished', 'published_at' => now()->subDay()]);
-        \App\Models\Book::create(['content_item_id' => $unpublished->id, 'author_name' => 'مؤلف']);
+        Book::create(['content_item_id' => $unpublished->id, 'author_name' => 'مؤلف']);
 
         $this->get('/books/draft-book')->assertNotFound();
         $this->get('/books/unpublished-book')->assertNotFound();
@@ -460,7 +466,7 @@ class ContentCrudTest extends TestCase
     public function test_published_content_is_visible_on_public_site(): void
     {
         $item = ContentItem::create(['type' => 'book', 'title' => 'كتاب منشور', 'slug' => 'published-book', 'status' => 'published', 'published_at' => now(), 'excerpt' => 'وصف الكتاب']);
-        \App\Models\Book::create(['content_item_id' => $item->id, 'author_name' => 'مؤلف الكتاب']);
+        Book::create(['content_item_id' => $item->id, 'author_name' => 'مؤلف الكتاب']);
 
         $this->get('/books')->assertOk()->assertSee('كتاب منشور');
         $this->get('/books/published-book')->assertOk()->assertSee('كتاب منشور');
@@ -478,7 +484,7 @@ class ContentCrudTest extends TestCase
         $admin = $this->userWithPermissions(['content.view', 'content.update', 'content.delete']);
 
         $lecture = ContentItem::create(['type' => 'lecture', 'title' => 'محاضرة', 'slug' => 'a-lecture', 'status' => 'draft']);
-        \App\Models\Lecture::create(['content_item_id' => $lecture->id]);
+        Lecture::create(['content_item_id' => $lecture->id]);
 
         $this->actingAs($admin)->get(route('admin.books.edit', $lecture))->assertNotFound();
         $this->actingAs($admin)->delete(route('admin.books.destroy', $lecture))->assertNotFound();
@@ -490,11 +496,11 @@ class ContentCrudTest extends TestCase
         $categoryB = Category::create(['name' => 'تصنيف ب', 'slug' => 'cat-b', 'is_active' => true]);
 
         $itemA = ContentItem::create(['type' => 'book', 'title' => 'كتاب أ', 'slug' => 'book-a', 'status' => 'published', 'published_at' => now()]);
-        \App\Models\Book::create(['content_item_id' => $itemA->id, 'author_name' => 'م']);
+        Book::create(['content_item_id' => $itemA->id, 'author_name' => 'م']);
         $itemA->categories()->attach($categoryA->id);
 
         $itemB = ContentItem::create(['type' => 'book', 'title' => 'كتاب ب', 'slug' => 'book-b', 'status' => 'published', 'published_at' => now()]);
-        \App\Models\Book::create(['content_item_id' => $itemB->id, 'author_name' => 'م']);
+        Book::create(['content_item_id' => $itemB->id, 'author_name' => 'م']);
         $itemB->categories()->attach($categoryB->id);
 
         $response = $this->get('/books?category_id='.$categoryA->id);

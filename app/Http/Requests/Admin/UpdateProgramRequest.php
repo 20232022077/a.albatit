@@ -28,6 +28,7 @@ class UpdateProgramRequest extends FormRequest
             'ended_on' => ['nullable', 'date', 'after_or_equal:started_on'],
             'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
+            'is_pinned' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],
             'category_ids' => ['nullable', 'array'],

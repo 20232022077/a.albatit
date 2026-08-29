@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\AccessControlSeeder;
@@ -127,7 +128,7 @@ class AuthorizationTest extends TestCase
     public function test_non_super_admin_cannot_grant_permissions_they_do_not_hold_via_a_new_role(): void
     {
         $manager = $this->userWithPermissions(['roles.view', 'roles.create', 'roles.update']);
-        $allPermissionIds = \App\Models\Permission::pluck('id')->all();
+        $allPermissionIds = Permission::pluck('id')->all();
 
         $this->actingAs($manager)->post(route('admin.roles.store'), [
             'name' => 'fake-super-role',

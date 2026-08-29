@@ -74,7 +74,7 @@
             @include('partials.section-divider', ['accent' => 'slate'])
             <div class="p-6 sm:p-8">
                 <div class="prose prose-slate mx-auto max-w-2xl text-[17px] leading-9 text-slate-700">
-                    @include('partials.rich-text', ['text' => $item->body])
+                    @include('partials.rich-text', ['text' => $item->body, 'accent' => 'slate'])
                 </div>
             </div>
         @endif

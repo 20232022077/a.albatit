@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\ActivityLog;
 use App\Models\Backup;
+use App\Models\Setting;
 use Database\Seeders\AccessControlSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -43,7 +45,7 @@ class SettingsBackupActivityLogTest extends TestCase
         $this->assertDatabaseHas('settings', ['key' => 'homepage.hero_eyebrow', 'value' => 'عبارة تجريبية فوق الصورة']);
         $this->assertDatabaseHas('settings', ['key' => 'homepage.hero_caption', 'value' => 'وصف تجريبي تحت الصورة']);
 
-        \App\Models\Setting::flush();
+        Setting::flush();
         $response = $this->get('/');
         $response->assertSee('اسم الموقع الجديد');
         $response->assertSee('عبارة تجريبية فوق الصورة');
@@ -140,7 +142,7 @@ class SettingsBackupActivityLogTest extends TestCase
             'password_confirmation' => 'SuperSecretPassword123',
         ]);
 
-        $log = \App\Models\ActivityLog::where('event', 'users.created')->firstOrFail();
+        $log = ActivityLog::where('event', 'users.created')->firstOrFail();
         $this->assertStringNotContainsString('SuperSecretPassword123', json_encode($log->properties));
     }
 }

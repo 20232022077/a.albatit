@@ -25,7 +25,7 @@ class HomeController extends Controller
             // cover image and type-specific metadata (see
             // resources/views/home.blade.php) — without this, every card
             // would trigger its own extra query.
-            $latest = fn (string $type, int $limit = 3) => ContentItem::published()->where('type', $type)
+            $latest = fn (string $type, int $limit = 4) => ContentItem::published()->where('type', $type)
                 ->with(match ($type) {
                     'book' => 'book.cover',
                     'program' => ['program', 'media'],
@@ -33,13 +33,13 @@ class HomeController extends Controller
                     'wall_post' => ['wallPost', 'media'],
                     default => 'media',
                 })
-                ->latest('published_at')->limit($limit)->get();
+                ->pinnedFirst()->latest('published_at')->limit($limit)->get();
 
             return [
                 'books' => $latest('book'), 'lectures' => $latest('lecture'), 'programs' => $latest('program'),
                 'reflections' => $latest('reflection'), 'wallPosts' => $latest('wall_post'),
-                'quranCentrality' => ContentItem::published()->inCategory('quran-centrality')->with('media')->latest('published_at')->limit(3)->get(),
-                'quraniyat' => ContentItem::published()->inCategory('quraniyat')->with('media')->latest('published_at')->limit(3)->get(),
+                'quranCentrality' => ContentItem::published()->inCategory('quran-centrality')->with('media')->pinnedFirst()->orderBy('sort_order')->latest('published_at')->limit(4)->get(),
+                'quraniyat' => ContentItem::published()->inCategory('quraniyat')->with('media')->pinnedFirst()->latest('published_at')->limit(4)->get(),
                 'biography' => ContentItem::published()->where('type', 'biography')->with('categories', 'biography.profileImage')->latest('published_at')->first(),
             ];
         });

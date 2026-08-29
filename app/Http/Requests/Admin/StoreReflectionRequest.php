@@ -26,6 +26,7 @@ class StoreReflectionRequest extends FormRequest
             'ayah_to' => ['nullable', 'integer', 'min:1', 'gte:ayah_from'],
             'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
+            'is_pinned' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],
             'category_ids' => ['nullable', 'array'],

@@ -12,12 +12,7 @@ class WallPost extends Model
 
     protected $keyType = 'int';
 
-    protected $fillable = ['content_item_id', 'is_pinned'];
-
-    protected function casts(): array
-    {
-        return ['is_pinned' => 'boolean'];
-    }
+    protected $fillable = ['content_item_id'];
 
     public function contentItem()
     {

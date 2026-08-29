@@ -12,7 +12,7 @@ class ProgramEpisode extends Model
 
     protected $keyType = 'int';
 
-    protected $fillable = ['content_item_id', 'program_id', 'episode_number', 'aired_at', 'video_media_id'];
+    protected $fillable = ['content_item_id', 'program_id', 'episode_number', 'aired_at'];
 
     protected function casts(): array
     {
@@ -27,10 +27,5 @@ class ProgramEpisode extends Model
     public function program()
     {
         return $this->belongsTo(Program::class, 'program_id', 'content_item_id');
-    }
-
-    public function video()
-    {
-        return $this->belongsTo(Media::class, 'video_media_id');
     }
 }

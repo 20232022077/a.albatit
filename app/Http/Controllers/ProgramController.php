@@ -21,6 +21,7 @@ class ProgramController extends Controller
             ->ofType('program')
             ->with(['program', 'categories', 'media'])
             ->search($request->string('q')->toString() ?: null)
+            ->pinnedFirst()
             ->latest('published_at')
             ->paginate(app(SiteSettings::class)->itemsPerPage())
             ->withQueryString();

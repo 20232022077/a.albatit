@@ -9,18 +9,18 @@ use App\Models\Tag;
 use App\Support\ActivityLogger;
 use App\Support\SafeFileUpload;
 use App\Support\SafeYoutube;
+use App\Support\Slug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 trait ManagesContentItems
 {
     protected function resolveSlug(?string $input, string $title, ?ContentItem $ignore = null): string
     {
-        $base = $this->sanitizeSlug(filled($input) ? $input : $title);
+        $base = Slug::sanitize(filled($input) ? $input : $title);
         $slug = $base;
         $suffix = 2;
 
@@ -46,15 +46,6 @@ trait ManagesContentItems
         }
 
         return $slug;
-    }
-
-    protected function sanitizeSlug(string $value): string
-    {
-        $value = preg_replace('/[\s_]+/u', '-', trim($value));
-        $value = preg_replace('/[^\p{L}\p{N}\-]+/u', '', $value);
-        $value = trim($value, '-');
-
-        return $value !== '' ? $value : (string) Str::uuid();
     }
 
     protected function resolvePublishedAt(string $status, ?string $input, ?Carbon $existing): ?Carbon
@@ -110,7 +101,7 @@ trait ManagesContentItems
             ->map(fn (string $name) => trim($name))
             ->filter()
             ->unique()
-            ->map(fn (string $name) => Tag::firstOrCreate(['slug' => $this->sanitizeSlug($name)], ['name' => $name])->id);
+            ->map(fn (string $name) => Tag::firstOrCreate(['slug' => Slug::sanitize($name)], ['name' => $name])->id);
 
         $item->tags()->sync($ids);
     }

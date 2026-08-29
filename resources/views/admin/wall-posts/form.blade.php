@@ -63,7 +63,7 @@
 
         <div class="flex flex-wrap gap-6">
             <label class="flex items-center gap-2"><input type="hidden" name="is_featured" value="0"><input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $item->is_featured))> مميز (عند الحاجة)</label>
-            <label class="flex items-center gap-2"><input type="hidden" name="is_pinned" value="0"><input type="checkbox" name="is_pinned" value="1" @checked(old('is_pinned', $wallPost->is_pinned))> مثبّت أعلى الحائط</label>
+            <label class="flex items-center gap-2"><input type="hidden" name="is_pinned" value="0"><input type="checkbox" name="is_pinned" value="1" @checked(old('is_pinned', $item->is_pinned))> تثبيت</label>
         </div>
 
         <div class="flex gap-3">

@@ -7,10 +7,10 @@ use App\Http\Requests\Admin\StoreTagRequest;
 use App\Http\Requests\Admin\UpdateTagRequest;
 use App\Models\Tag;
 use App\Support\ActivityLogger;
+use App\Support\Slug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class TagController extends Controller
@@ -123,7 +123,7 @@ class TagController extends Controller
 
     private function resolveSlug(?string $input, string $name, ?Tag $ignore = null): string
     {
-        $base = $this->sanitizeSlug(filled($input) ? $input : $name);
+        $base = Slug::sanitize(filled($input) ? $input : $name);
         $slug = $base;
         $suffix = 2;
 
@@ -133,15 +133,6 @@ class TagController extends Controller
         }
 
         return $slug;
-    }
-
-    private function sanitizeSlug(string $value): string
-    {
-        $value = preg_replace('/[\s_]+/u', '-', trim($value));
-        $value = preg_replace('/[^\p{L}\p{N}\-]+/u', '', $value);
-        $value = trim($value, '-');
-
-        return $value !== '' ? $value : (string) Str::uuid();
     }
 
     private function record(string $event, Tag $tag): void

@@ -15,7 +15,7 @@
     <article class="mt-6 overflow-hidden rounded-3xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md">
         <header class="border-b border-slate-100 px-6 py-5 sm:px-8">
             <div class="flex flex-wrap items-center gap-2">
-                @if($item->wallPost?->is_pinned)<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">📌 مثبّت</span>@endif
+                @if($item->is_pinned)<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">📌 مثبّت</span>@endif
                 <p class="text-xs text-slate-400">{{ $item->published_at?->translatedFormat('j F Y') }}</p>
             </div>
             <h1 class="mt-1.5 text-xl font-extrabold leading-8 text-slate-800 sm:text-2xl">{{ $item->title }}</h1>
@@ -24,7 +24,7 @@
 
         <div class="px-6 py-6 sm:px-8">
             <div class="prose prose-slate max-w-none text-[17px] leading-9 text-slate-700">
-                @include('partials.rich-text', ['text' => $item->body])
+                @include('partials.rich-text', ['text' => $item->body, 'accent' => 'emerald'])
             </div>
 
             @if($cover = $item->coverImage())

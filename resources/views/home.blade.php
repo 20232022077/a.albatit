@@ -96,9 +96,10 @@
                 'action' => ['label' => 'كل المحتوى', 'url' => route('quran-centrality.index')],
             ])
 
-            <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse($quranCentrality as $item)
-                    <a href="{{ route('quran-centrality.show', $item->slug) }}" class="group flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
+                    <a href="{{ route('quran-centrality.show', $item->slug) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
                         @if($cover = $item->coverImage())
                             <div class="aspect-[4/3] overflow-hidden">
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -108,7 +109,7 @@
                             <span class="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-700 ring-1 ring-emerald-100">مركزية القرآن</span>
                             <h3 class="mt-2.5 line-clamp-2 text-base font-bold leading-6">{{ $item->title }}</h3>
                             @include('partials.card-divider', ['accent' => 'slate'])
-                            <p class="line-clamp-3 flex-1 text-sm leading-6 text-slate-600">{{ \Illuminate\Support\Str::limit((string) $item->body, 130) }}</p>
+                            <p class="line-clamp-3 flex-1 text-sm leading-6 text-slate-600">{!! \App\Support\QuranTextHighlighter::highlightExcerpt((string) $item->body, 130, 'slate') !!}</p>
                             <span class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">
                                 قراءة المزيد
                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l-5-5 5-5M5 12h14"/></svg>
@@ -134,9 +135,10 @@
                 'action' => ['label' => 'كل القرآنيات', 'url' => route('quraniyat.index')],
             ])
 
-            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse($quraniyat as $item)
-                    <a href="{{ route('quraniyat.show', $item->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
+                    <a href="{{ route('quraniyat.show', $item->slug) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
                         <span class="absolute inset-x-6 top-0 z-10 h-px bg-gradient-to-l from-amber-400/70 via-amber-300/70 to-transparent"></span>
                         <svg class="pointer-events-none absolute -left-3 -top-3 z-10 h-16 w-16 text-amber-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">{!! $sectionIcons['quraniyat'] !!}</svg>
 
@@ -176,11 +178,12 @@
             ])
 
             @if($wallPosts->isNotEmpty())
-                <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     @foreach($wallPosts as $item)
-                        <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white via-white to-emerald-100/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                        @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
+                        <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white via-white to-emerald-100/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
                             <div class="flex items-center gap-2 border-b border-slate-100 px-5 py-3">
-                                @if($item->wallPost?->is_pinned)<span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">📌 مثبّت</span>@endif
+                                @if($item->is_pinned)<span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">📌 مثبّت</span>@endif
                                 <p class="text-xs text-slate-400">{{ $item->published_at?->translatedFormat('j F Y') }}</p>
                             </div>
                             <div class="flex flex-1 flex-col px-5 py-4">
@@ -213,9 +216,10 @@
                 'action' => ['label' => 'كل التأملات', 'url' => route('reflections.index')],
             ])
 
-            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse($reflections as $item)
-                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
+                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
                         @if($cover = $item->coverImage())
                             <div class="aspect-[3/1] overflow-hidden">
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -255,9 +259,10 @@
             'action' => ['label' => 'عرض كل الكتب', 'url' => route('books.index')],
         ])
 
-        <div class="mx-auto mt-8 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             @forelse($books as $item)
-                <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
+                <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
                     <span class="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-l from-amber-400 via-amber-300 to-amber-100"></span>
                     @if($item->book?->cover)
                         <div class="aspect-[3/4] overflow-hidden">
@@ -302,9 +307,10 @@
                 'action' => ['label' => 'كل البرامج', 'url' => route('programs.index')],
             ])
 
-            <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse($programs as $item)
-                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
+                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
                         <div class="aspect-video overflow-hidden bg-slate-100">
                             @if($cover = $item->coverImage())
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -344,9 +350,10 @@
                 'action' => ['label' => 'كل المحاضرات', 'url' => route('lectures.index')],
             ])
 
-            <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse($lectures as $item)
-                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
+                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
                         <div class="aspect-video overflow-hidden bg-slate-100">
                             @if($cover = $item->coverImage())
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">

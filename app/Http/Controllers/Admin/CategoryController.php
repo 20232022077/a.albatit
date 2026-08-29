@@ -9,13 +9,13 @@ use App\Models\Category;
 use App\Models\Media;
 use App\Support\ActivityLogger;
 use App\Support\SafeFileUpload;
+use App\Support\Slug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
@@ -161,7 +161,7 @@ class CategoryController extends Controller
 
     private function resolveSlug(?string $input, string $name, ?Category $ignore = null): string
     {
-        $base = $this->sanitizeSlug(filled($input) ? $input : $name);
+        $base = Slug::sanitize(filled($input) ? $input : $name);
         $slug = $base;
         $suffix = 2;
 
@@ -171,15 +171,6 @@ class CategoryController extends Controller
         }
 
         return $slug;
-    }
-
-    private function sanitizeSlug(string $value): string
-    {
-        $value = preg_replace('/[\s_]+/u', '-', trim($value));
-        $value = preg_replace('/[^\p{L}\p{N}\-]+/u', '', $value);
-        $value = trim($value, '-');
-
-        return $value !== '' ? $value : (string) Str::uuid();
     }
 
     private function buildSeoMeta(array $data): array

@@ -36,7 +36,7 @@
                 @endif
                 <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
-                        @if($item->wallPost?->is_pinned)<span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">مثبّت</span>@endif
+                        @if($item->is_pinned)<span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">📌 مثبّت</span>@endif
                         @if($item->trashed())
                             <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">محذوف</span>
                         @elseif($item->status === 'published')

@@ -74,6 +74,7 @@ class ReflectionController extends Controller
                 'body' => $data['body'] ?? null,
                 'status' => $data['status'],
                 'is_featured' => $request->boolean('is_featured'),
+                'is_pinned' => $request->boolean('is_pinned'),
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, null),
                 'meta' => $this->buildSeoMeta($data),
@@ -123,6 +124,7 @@ class ReflectionController extends Controller
                 'body' => $data['body'] ?? null,
                 'status' => $data['status'],
                 'is_featured' => $request->boolean('is_featured'),
+                'is_pinned' => $request->boolean('is_pinned'),
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, $item->published_at),
                 'meta' => $this->buildSeoMeta($data),
@@ -187,5 +189,4 @@ class ReflectionController extends Controller
         $this->authorize('permission', $permission);
         abort_unless($item->type === 'reflection', 404);
     }
-
 }

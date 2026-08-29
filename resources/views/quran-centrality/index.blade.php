@@ -32,7 +32,7 @@
                         <span class="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-700 ring-1 ring-emerald-100">{{ $typeLabels[$item->type] ?? $item->type }}</span>
                         <h2 class="mt-2.5 text-lg font-bold leading-7">{{ $item->title }}</h2>
                         @include('partials.card-divider', ['accent' => 'slate'])
-                        <p class="line-clamp-3 flex-1 text-sm leading-6 text-slate-600">{{ \Illuminate\Support\Str::limit((string) $item->body, 140) }}</p>
+                        <p class="line-clamp-3 flex-1 text-sm leading-6 text-slate-600">{!! \App\Support\QuranTextHighlighter::highlightExcerpt((string) $item->body, 140, 'slate') !!}</p>
                         <span class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">
                             قراءة المزيد
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l-5-5 5-5M5 12h14"/></svg>

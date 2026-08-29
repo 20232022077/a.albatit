@@ -76,7 +76,7 @@ class BackupService
         File::ensureDirectoryExists($workDir);
 
         try {
-            $zip = new ZipArchive();
+            $zip = new ZipArchive;
             if ($zip->open(Storage::disk('backups')->path($backup->path)) !== true) {
                 throw new RuntimeException('تعذّر فتح ملف النسخة الاحتياطية.');
             }
@@ -184,7 +184,7 @@ class BackupService
 
     private function buildArchive(string $zipPath, string $sqlPath): void
     {
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             throw new RuntimeException('تعذّر إنشاء أرشيف النسخة الاحتياطية.');
         }

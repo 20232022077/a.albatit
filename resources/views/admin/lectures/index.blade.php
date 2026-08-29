@@ -47,6 +47,7 @@
                     <th class="p-4">التصنيفات</th>
                     <th class="p-4">الحالة</th>
                     <th class="p-4">مميز</th>
+                    <th class="p-4">تثبيت</th>
                     <th class="p-4"><a href="{{ $sortLink('sort_order') }}">الترتيب</a></th>
                     <th class="p-4"><a href="{{ $sortLink('published_at') }}">تاريخ النشر</a></th>
                     <th class="p-4"></th>
@@ -76,6 +77,7 @@
                             @endif
                         </td>
                         <td class="p-4">{{ $item->is_featured ? '★' : '—' }}</td>
+                        <td class="p-4">{{ $item->is_pinned ? '📌' : '—' }}</td>
                         <td class="p-4">{{ $item->sort_order }}</td>
                         <td class="p-4 text-slate-500">{{ $item->published_at?->translatedFormat('j M Y') ?? '—' }}</td>
                         <td class="p-4 whitespace-nowrap">
@@ -99,7 +101,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="p-6 text-center text-slate-500">لا توجد محاضرات مطابقة.</td></tr>
+                    <tr><td colspan="9" class="p-6 text-center text-slate-500">لا توجد محاضرات مطابقة.</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -34,6 +34,7 @@ class ReflectionController extends Controller
                 'categories', fn (Builder $c) => $c->where('categories.id', $request->integer('category_id'))
             ))
             ->search($request->string('q')->toString() ?: null)
+            ->pinnedFirst()
             ->orderBy($column, $direction)
             ->paginate(app(SiteSettings::class)->itemsPerPage())
             ->withQueryString();

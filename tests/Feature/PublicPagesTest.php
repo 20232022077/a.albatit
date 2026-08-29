@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Book;
 use App\Models\ContentItem;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Tests\TestCase;
@@ -46,10 +47,10 @@ class PublicPagesTest extends TestCase
     public function test_search_only_returns_published_content(): void
     {
         $published = ContentItem::create(['type' => 'book', 'title' => 'كتاب بحث منشور', 'slug' => 'search-published', 'status' => 'published', 'published_at' => now()]);
-        \App\Models\Book::create(['content_item_id' => $published->id, 'author_name' => 'م']);
+        Book::create(['content_item_id' => $published->id, 'author_name' => 'م']);
 
         $draft = ContentItem::create(['type' => 'book', 'title' => 'كتاب بحث مسودة', 'slug' => 'search-draft', 'status' => 'draft']);
-        \App\Models\Book::create(['content_item_id' => $draft->id, 'author_name' => 'م']);
+        Book::create(['content_item_id' => $draft->id, 'author_name' => 'م']);
 
         $response = $this->get('/search?q='.urlencode('بحث'));
         $response->assertSee('كتاب بحث منشور')->assertDontSee('كتاب بحث مسودة');
@@ -80,7 +81,7 @@ class PublicPagesTest extends TestCase
     public function test_content_page_canonical_and_og_tags_are_present(): void
     {
         $item = ContentItem::create(['type' => 'book', 'title' => 'كتاب سيو', 'slug' => 'seo-book', 'status' => 'published', 'published_at' => now(), 'excerpt' => 'وصف']);
-        \App\Models\Book::create(['content_item_id' => $item->id, 'author_name' => 'مؤلف']);
+        Book::create(['content_item_id' => $item->id, 'author_name' => 'مؤلف']);
 
         $response = $this->get('/books/seo-book');
         $response->assertOk();

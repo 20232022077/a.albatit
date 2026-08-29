@@ -46,7 +46,7 @@
             <h2 class="text-lg font-bold text-slate-900">نبذة عن المحاضرة</h2>
             <div class="mt-4 rounded-3xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 p-6 shadow-sm sm:p-8">
                 <div class="prose prose-slate mx-auto max-w-2xl text-[17px] leading-9 text-slate-700">
-                    @include('partials.rich-text', ['text' => $item->body])
+                    @include('partials.rich-text', ['text' => $item->body, 'accent' => 'emerald'])
                 </div>
             </div>
         </div>

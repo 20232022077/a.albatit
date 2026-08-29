@@ -10,11 +10,11 @@ class ContentItem extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['author_id', 'type', 'title', 'slug', 'excerpt', 'body', 'status', 'is_featured', 'sort_order', 'published_at', 'meta'];
+    protected $fillable = ['author_id', 'type', 'title', 'slug', 'excerpt', 'body', 'status', 'is_featured', 'is_pinned', 'sort_order', 'published_at', 'meta'];
 
     protected function casts(): array
     {
-        return ['is_featured' => 'boolean', 'sort_order' => 'integer', 'likes_count' => 'integer', 'published_at' => 'datetime', 'meta' => 'array'];
+        return ['is_featured' => 'boolean', 'is_pinned' => 'boolean', 'sort_order' => 'integer', 'likes_count' => 'integer', 'published_at' => 'datetime', 'meta' => 'array'];
     }
 
     public function scopePublished(Builder $query): Builder
@@ -25,6 +25,17 @@ class ContentItem extends Model
     public function scopeOfType(Builder $query, string $type): Builder
     {
         return $query->where('type', $type);
+    }
+
+    /**
+     * Pinned items always sort ahead of unpinned ones, whatever ordering
+     * the caller chains afterward (newest/oldest/title, sort_order+id,
+     * …) — that's the whole point of "تثبيت" (pin): once set, an item
+     * can't be pushed back down by newer content arriving after it.
+     */
+    public function scopePinnedFirst(Builder $query): Builder
+    {
+        return $query->orderBy('is_pinned', 'desc');
     }
 
     public function scopeInCategory(Builder $query, string $categorySlug): Builder

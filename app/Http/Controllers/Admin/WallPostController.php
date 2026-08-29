@@ -51,7 +51,6 @@ class WallPostController extends Controller
 
         return view('admin.wall-posts.form', [
             'item' => new ContentItem(['status' => 'draft', 'sort_order' => 0]),
-            'wallPost' => new WallPost,
         ]);
     }
 
@@ -68,15 +67,13 @@ class WallPostController extends Controller
                 'body' => $data['text'],
                 'status' => $data['status'],
                 'is_featured' => $request->boolean('is_featured'),
+                'is_pinned' => $request->boolean('is_pinned'),
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, null),
                 'meta' => $this->resolveYoutubeMeta($data['video_url'] ?? null),
             ]);
 
-            WallPost::create([
-                'content_item_id' => $item->id,
-                'is_pinned' => $request->boolean('is_pinned'),
-            ]);
+            WallPost::create(['content_item_id' => $item->id]);
 
             $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'wall', $request->user()->id);
 
@@ -93,10 +90,7 @@ class WallPostController extends Controller
         $this->authorizeWallItem($item);
         $item->load('media');
 
-        return view('admin.wall-posts.form', [
-            'item' => $item,
-            'wallPost' => $item->wallPost ?? new WallPost,
-        ]);
+        return view('admin.wall-posts.form', ['item' => $item]);
     }
 
     public function update(UpdateWallPostRequest $request, ContentItem $item): RedirectResponse
@@ -110,13 +104,13 @@ class WallPostController extends Controller
                 'body' => $data['text'],
                 'status' => $data['status'],
                 'is_featured' => $request->boolean('is_featured'),
+                'is_pinned' => $request->boolean('is_pinned'),
                 'sort_order' => $data['sort_order'] ?? 0,
                 'published_at' => $this->resolvePublishedAt($data['status'], $data['published_at'] ?? null, $item->published_at),
                 'meta' => $this->resolveYoutubeMeta($data['video_url'] ?? null),
             ]);
 
-            $wallPost = $item->wallPost ?? WallPost::create(['content_item_id' => $item->id]);
-            $wallPost->update(['is_pinned' => $request->boolean('is_pinned')]);
+            $item->wallPost ?? WallPost::create(['content_item_id' => $item->id]);
 
             $this->replaceMediaCollection($item, $request->file('cover_image'), 'cover', 'wall', $request->user()->id, $request->boolean('remove_cover_image'));
         });

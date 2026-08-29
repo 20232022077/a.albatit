@@ -29,6 +29,7 @@ class StoreLectureRequest extends FormRequest
             'venue' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
+            'is_pinned' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],
             'category_ids' => ['nullable', 'array'],

@@ -30,6 +30,7 @@ class UpdateBookRequest extends FormRequest
             'pages_count' => ['nullable', 'integer', 'min:1'],
             'status' => ['required', Rule::in(ContentStatus::values())],
             'is_featured' => ['nullable', 'boolean'],
+            'is_pinned' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'published_at' => ['nullable', 'date'],
             'category_ids' => ['nullable', 'array'],

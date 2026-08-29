@@ -20,6 +20,7 @@ class WallController extends Controller
             ->ofType('wall_post')
             ->with(['media', 'wallPost'])
             ->search($request->string('q')->toString() ?: null)
+            ->pinnedFirst()
             ->orderBy('sort_order')
             ->latest('published_at')
             ->paginate(app(SiteSettings::class)->itemsPerPage())

@@ -8,7 +8,6 @@
     $trail = [['الرئيسية', route('home')], ['الكتب', route('books.index')], [$item->title, null]];
     $ogImage = $book?->cover?->url();
     $ogType = 'book';
-    $liked = request()->cookie('liked_book_'.$item->id) === '1';
 @endphp
 
 @push('json-ld')
@@ -46,14 +45,6 @@
                 @if($book?->pdf)
                     <a href="{{ $book->pdf->pdfUrl() }}" target="_blank" rel="noopener" class="flex items-center justify-center rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">فتح في نافذة جديدة</a>
                 @endif
-                <form method="POST" action="{{ route('books.like', $item) }}">
-                    @csrf
-                    <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition {{ $liked ? 'border-red-200 bg-red-50 text-red-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50' }}">
-                        <span aria-hidden="true">{{ $liked ? '❤️' : '🤍' }}</span>
-                        <span>{{ $liked ? 'أعجبني' : 'إعجاب' }}</span>
-                        <span class="text-slate-400">({{ $item->likes_count }})</span>
-                    </button>
-                </form>
             </div>
         </div>
         <div class="min-w-0 flex-1 text-center sm:text-right">
@@ -83,7 +74,7 @@
             <h2 class="text-lg font-bold text-slate-900">نبذة عن الكتاب</h2>
             <div class="mt-4 rounded-3xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 p-6 shadow-md sm:p-8">
                 <div class="prose prose-slate mx-auto max-w-2xl text-[17px] leading-9 text-slate-700">
-                    @include('partials.rich-text', ['text' => $item->body])
+                    @include('partials.rich-text', ['text' => $item->body, 'accent' => 'emerald'])
                 </div>
             </div>
         </div>

@@ -60,7 +60,7 @@
             @include('partials.section-divider', ['accent' => 'amber'])
             <div class="p-7 sm:p-9">
                 <div class="prose prose-slate mx-auto max-w-2xl text-lg leading-9 text-slate-700">
-                    @include('partials.rich-text', ['text' => $item->body])
+                    @include('partials.rich-text', ['text' => $item->body, 'accent' => 'amber'])
                 </div>
             </div>
         @endif

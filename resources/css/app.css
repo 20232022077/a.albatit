@@ -156,6 +156,53 @@
     background-size: 26px 26px;
 }
 
+/*
+ * The official King Fahd Complex Mushaf font — the standard Uthmani Hafs
+ * script used by quran.com and virtually every Qur'an application, self-
+ * hosted here (its own family name, "KFGQPC Uthmanic Script HAFS", isn't
+ * on Bunny Fonts). local() first: if the visitor already has the font
+ * installed system-wide, the browser uses that copy instead of fetching
+ * this file at all.
+ */
+@font-face {
+    font-family: 'Uthmanic Hafs';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('KFGQPC Uthmanic Script HAFS'), url('/fonts/UthmanicHafs.woff2') format('woff2');
+}
+
+/*
+ * Qur'anic verse text (auto-detected in body content by
+ * App\Support\QuranTextHighlighter from its Uthmani-script diacritics —
+ * see that class for the detection rule). Tajawal, the site's UI font,
+ * wasn't built for this diacritic set: marks crowd and misalign over the
+ * base letters. A tinted color (matching whichever accent the surrounding
+ * card/section already uses) sets verses apart from the author's own
+ * commentary without introducing a new site color.
+ */
+.quran-verse {
+    font-family: 'Uthmanic Hafs', 'Amiri Quran', 'Amiri', serif;
+    font-size: 1.15em;
+    line-height: 2.3;
+}
+
+.quran-verse--emerald { color: var(--color-emerald-800); }
+.quran-verse--amber { color: var(--color-amber-800); }
+.quran-verse--slate { color: var(--color-slate-800); }
+
+/* The "(سورة: رقم)" reference immediately after a verse — the site's own
+   UI font (not the Mushaf script, since this is reference metadata, not
+   Qur'an text itself), small and muted so it reads as a citation rather
+   than competing with the verse for attention. */
+.quran-citation {
+    font-family: var(--font-sans);
+    font-size: 0.8em;
+    font-weight: 700;
+    opacity: 0.75;
+    margin-inline-start: 0.4em;
+}
+
 /* The base direction is declared in the layout; use logical CSS properties for RTL-safe components. */
 :root {
     direction: rtl;

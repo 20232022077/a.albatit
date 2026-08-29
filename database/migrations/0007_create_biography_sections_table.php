@@ -21,5 +21,8 @@ return new class extends Migration
         });
     }
 
-    public function down(): void { Schema::dropIfExists('biography_sections'); }
+    public function down(): void
+    {
+        Schema::dropIfExists('biography_sections');
+    }
 };

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Database\Seeders\AccessControlSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class CreateAdminCommandTest extends TestCase
@@ -29,7 +30,7 @@ class CreateAdminCommandTest extends TestCase
         $admin = User::where('email', 'siteadmin@example.com')->firstOrFail();
         $this->assertTrue($admin->is_active);
         $this->assertTrue($admin->hasRole('super-admin'));
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('CorrectHorseBattery123', $admin->password));
+        $this->assertTrue(Hash::check('CorrectHorseBattery123', $admin->password));
     }
 
     public function test_make_admin_rejects_a_short_password(): void

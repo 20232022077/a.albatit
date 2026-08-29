@@ -144,7 +144,7 @@
                                     @endif
                                     @if($section->body)
                                         <div class="mt-2 leading-7 text-slate-600">
-                                            @include('partials.rich-text', ['text' => $section->body])
+                                            @include('partials.rich-text', ['text' => $section->body, 'accent' => 'amber'])
                                         </div>
                                     @endif
                                 </div>

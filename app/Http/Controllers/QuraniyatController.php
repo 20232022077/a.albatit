@@ -24,6 +24,7 @@ class QuraniyatController extends Controller
             ->with(['categories', 'media'])
             ->when($request->filled('type'), fn (Builder $q) => $q->ofType($request->string('type')->toString()))
             ->search($request->string('q')->toString() ?: null)
+            ->pinnedFirst()
             ->orderBy('sort_order')
             ->latest('published_at')
             ->paginate(app(SiteSettings::class)->itemsPerPage())

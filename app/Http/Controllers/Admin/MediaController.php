@@ -37,9 +37,15 @@ class MediaController extends Controller
 
     public function store(StoreMediaRequest $request): RedirectResponse
     {
-        $created = 0;
+        $files = $request->file('files', []);
 
-        foreach ($request->file('files', []) as $file) {
+        // Validate every file before storing any of them. A DB transaction
+        // around the loop below wouldn't help here — the abort on a later
+        // file happens after earlier files are already written to disk, and
+        // rolling back the DB inserts wouldn't clean those files up. Failing
+        // this pass first means a rejected file can't leave an earlier,
+        // valid file's upload half-committed.
+        foreach ($files as $file) {
             $extension = strtolower($file->getClientOriginalExtension());
             $type = SafeFileUpload::classify($extension);
             abort_unless(in_array($type, ['image', 'pdf'], true), 422, 'نوع الملف غير مدعوم في مكتبة الوسائط.');
@@ -47,7 +53,13 @@ class MediaController extends Controller
             $allowed = $type === 'pdf' ? SafeFileUpload::PDF_EXTENSIONS : SafeFileUpload::IMAGE_EXTENSIONS;
             $maxKb = $type === 'pdf' ? 51200 : 10240;
             SafeFileUpload::assertSafe($file, $allowed, $maxKb);
+        }
 
+        $created = 0;
+
+        foreach ($files as $file) {
+            $extension = strtolower($file->getClientOriginalExtension());
+            $type = SafeFileUpload::classify($extension);
             $disk = SafeFileUpload::diskFor($type);
             $directory = ($type === 'pdf' ? 'pdfs/' : '').'media/'.now()->format('Y/m');
             $path = $file->store($directory, $disk);

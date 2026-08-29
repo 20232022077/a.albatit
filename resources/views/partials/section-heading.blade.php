@@ -13,9 +13,9 @@
 --}}
 @php
     $accentClasses = match($accent ?? 'emerald') {
-        'amber' => ['badge' => 'bg-amber-50 text-amber-700', 'bar' => 'from-amber-400 to-amber-200', 'link' => 'text-amber-700 hover:text-amber-900'],
-        'slate' => ['badge' => 'bg-slate-100 text-slate-600', 'bar' => 'from-slate-400 to-slate-200', 'link' => 'text-slate-700 hover:text-slate-900'],
-        default => ['badge' => 'bg-emerald-50 text-emerald-700', 'bar' => 'from-emerald-500 to-emerald-200', 'link' => 'text-emerald-700 hover:text-emerald-900'],
+        'amber' => ['badge' => 'bg-amber-50 text-amber-700', 'bar' => 'from-amber-400 to-amber-200', 'button' => 'bg-amber-50 text-amber-800 ring-amber-100 hover:bg-amber-800 hover:text-white hover:ring-amber-800'],
+        'slate' => ['badge' => 'bg-slate-100 text-slate-600', 'bar' => 'from-slate-400 to-slate-200', 'button' => 'bg-slate-100 text-slate-700 ring-slate-200 hover:bg-slate-800 hover:text-white hover:ring-slate-800'],
+        default => ['badge' => 'bg-emerald-50 text-emerald-700', 'bar' => 'from-emerald-500 to-emerald-200', 'button' => 'bg-emerald-50 text-emerald-800 ring-emerald-100 hover:bg-emerald-800 hover:text-white hover:ring-emerald-800'],
     };
 @endphp
 <div class="flex flex-wrap items-center justify-between gap-4">
@@ -31,7 +31,7 @@
         </div>
     </div>
     @if($action ?? null)
-        <a href="{{ $action['url'] }}" class="hidden shrink-0 items-center gap-1.5 text-sm font-bold {{ $accentClasses['link'] }} transition sm:flex">
+        <a href="{{ $action['url'] }}" class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold ring-1 transition {{ $accentClasses['button'] }}">
             {{ $action['label'] }}
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 7l5 5-5 5M19 12H5"/></svg>
         </a>

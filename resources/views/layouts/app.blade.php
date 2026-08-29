@@ -34,7 +34,7 @@
         @if($siteSettings->twitterSite())<meta name="twitter:site" content="{{ $siteSettings->twitterSite() }}">@endif
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=tajawal:400,500,700,800,900&display=swap" rel="stylesheet">
+        <link href="https://fonts.bunny.net/css?family=tajawal:400,500,700,800,900|amiri-quran:400&display=swap" rel="stylesheet">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('json-ld')

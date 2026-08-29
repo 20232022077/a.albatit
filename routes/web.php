@@ -45,7 +45,6 @@ Route::get('/quran-centrality', [QuranCentralityController::class, 'index'])->na
 Route::get('/quran-centrality/{slug}', [QuranCentralityController::class, 'show'])->name('quran-centrality.show');
 Route::get('/books', [BookController::class, 'index'])->name('books.index');
 Route::get('/books/{slug}', [BookController::class, 'show'])->name('books.show');
-Route::post('/books/{item}/like', [BookController::class, 'like'])->name('books.like');
 Route::get('/quraniyat', [QuraniyatController::class, 'index'])->name('quraniyat.index');
 Route::get('/quraniyat/{slug}', [QuraniyatController::class, 'show'])->name('quraniyat.show');
 Route::get('/lectures', [LectureController::class, 'index'])->name('lectures.index');
