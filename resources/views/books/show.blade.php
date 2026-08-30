@@ -57,6 +57,7 @@
                 @if($book?->publisher)<span>الناشر: {{ $book->publisher }}</span>@endif
                 @if($book?->publication_year)<span>سنة النشر: {{ $book->publication_year }}</span>@endif
                 @if($book?->pages_count)<span>عدد الصفحات: {{ $book->pages_count }}</span>@endif
+                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('books.show', $item->slug)])
             </div>
 
             @if($item->categories->isNotEmpty())

@@ -26,7 +26,8 @@
 
         <div class="mt-8 grid gap-6 sm:grid-cols-2">
             @forelse($items as $item)
-                <a href="{{ route('reflections.show', $item->slug) }}" class="group block overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                <a href="{{ route('reflections.show', $item->slug) }}" class="group relative block overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('reflections.show', $item->slug)])
                     @if($cover = $item->coverImage())
                         <div class="aspect-[3/1] overflow-hidden">
                             <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">

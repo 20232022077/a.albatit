@@ -32,6 +32,7 @@
                 @if($item->lecture?->venue)<span>المكان: {{ $item->lecture->venue }}</span>@endif
                 @if($item->lecture?->delivered_at)<span>تاريخ الإلقاء: {{ $item->lecture->delivered_at->translatedFormat('j F Y') }}</span>@endif
                 @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
+                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('lectures.show', $item->slug)])
             </div>
             @if($item->excerpt)<p class="mt-4 leading-7 text-slate-600">{{ $item->excerpt }}</p>@endif
         </div>

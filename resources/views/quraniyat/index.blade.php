@@ -23,6 +23,7 @@
         <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @forelse($items as $item)
                 <a href="{{ route('quraniyat.show', $item->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('quraniyat.show', $item->slug)])
                     <span class="absolute inset-x-6 top-0 z-10 h-px bg-gradient-to-l from-amber-400/70 via-amber-300/70 to-transparent"></span>
 
                     @if($cover = $item->coverImage())

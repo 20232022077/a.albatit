@@ -19,7 +19,8 @@
         <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @forelse($items as $item)
                 @php($isPinned = (bool) $item->is_pinned)
-                <a href="{{ route('wall.show', $item->slug) }}" class="group flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white via-white to-emerald-100/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl {{ $isPinned ? 'ring-1 ring-amber-200 lg:col-span-2' : '' }}">
+                <a href="{{ route('wall.show', $item->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white via-white to-emerald-100/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl {{ $isPinned ? 'ring-1 ring-amber-200 lg:col-span-2' : '' }}">
+                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('wall.show', $item->slug)])
                     <div class="border-b border-slate-100 px-5 py-3.5">
                         <div class="flex flex-wrap items-center gap-2">
                             @if($isPinned)<span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">📌 مثبّت</span>@endif

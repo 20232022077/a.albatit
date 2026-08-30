@@ -30,6 +30,7 @@
                 @if($item->program?->presenter)<span>المقدّم: {{ $item->program->presenter }}</span>@endif
                 @if($item->program?->started_on)<span>بدأ: {{ $item->program->started_on->translatedFormat('j F Y') }}</span>@endif
                 @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
+                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('programs.show', $item->slug)])
             </div>
             @if($item->excerpt)<p class="mt-4 leading-7 text-slate-600">{{ $item->excerpt }}</p>@endif
         </div>

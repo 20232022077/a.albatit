@@ -167,6 +167,146 @@ document.addEventListener('submit', (event) => {
  * installed). A cover the admin picks by hand always takes priority and is
  * never overwritten by this.
  */
+/**
+ * Share button (see partials/share-button.blade.php): opens the OS-native
+ * share sheet where available, otherwise a small menu of share links.
+ * Delegated at the document level since a single card grid can render many
+ * of these at once. The menu is moved to a direct child of <body> the
+ * first time it opens — every card it can appear inside already has both
+ * `overflow-hidden` and a `hover:-translate-y-2` transform (the transform
+ * becomes active while the card is hovered to click the button at all,
+ * which creates a new containing block for `position: fixed` descendants),
+ * so leaving the menu nested inside the card would clip or mis-position
+ * it. Positioned from the trigger's own on-screen coordinates instead.
+ */
+(() => {
+    const shareLinkBuilders = {
+        whatsapp: (title, url) => `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`,
+        facebook: (title, url) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+        x: (title, url) => `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
+        telegram: (title, url) => `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+        email: (title, url) => `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`,
+    };
+
+    const closeAllShareMenus = () => {
+        document.querySelectorAll('[data-share-menu]').forEach((menu) => menu.classList.add('hidden'));
+        document.querySelectorAll('[data-share-trigger]').forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
+    };
+
+    const positionShareMenu = (menu, trigger) => {
+        if (menu.parentElement !== document.body) {
+            document.body.appendChild(menu);
+        }
+
+        const rect = trigger.getBoundingClientRect();
+        const menuWidth = menu.offsetWidth || 192;
+        const menuHeight = menu.offsetHeight || 260;
+        const margin = 8;
+
+        let left = rect.right - menuWidth;
+        left = Math.max(margin, Math.min(left, window.innerWidth - menuWidth - margin));
+
+        let top = rect.bottom + margin;
+        if (top + menuHeight > window.innerHeight - margin && rect.top - menuHeight - margin > 0) {
+            top = rect.top - menuHeight - margin;
+        }
+
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+    };
+
+    const copyShareLink = (button, url) => {
+        const label = button.querySelector('[data-share-copy-label]');
+        const original = label?.textContent;
+
+        const onCopied = () => {
+            if (!label) return;
+            label.textContent = 'تم نسخ الرابط ✓';
+            setTimeout(() => {
+                label.textContent = original;
+            }, 1500);
+        };
+
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(url).then(onCopied).catch(() => {});
+            return;
+        }
+
+        const temp = document.createElement('textarea');
+        temp.value = url;
+        temp.style.position = 'fixed';
+        temp.style.opacity = '0';
+        document.body.appendChild(temp);
+        temp.select();
+        try {
+            document.execCommand('copy');
+            onCopied();
+        } catch {
+            // Clipboard access denied/unsupported — the option simply does nothing.
+        }
+        temp.remove();
+    };
+
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-share-trigger]');
+        if (trigger) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const title = trigger.dataset.shareTitle || document.title;
+            const url = trigger.dataset.shareUrl || window.location.href;
+
+            if (navigator.share) {
+                navigator.share({ title, url }).catch(() => {});
+                return;
+            }
+
+            const menu = document.getElementById(trigger.dataset.shareTarget);
+            if (!menu) return;
+
+            const isOpen = !menu.classList.contains('hidden');
+            closeAllShareMenus();
+            if (isOpen) return;
+
+            menu.classList.remove('hidden');
+            positionShareMenu(menu, trigger);
+            trigger.setAttribute('aria-expanded', 'true');
+            return;
+        }
+
+        const option = event.target.closest('[data-share-option]');
+        if (option) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const menu = option.closest('[data-share-menu]');
+            const title = menu?.dataset.shareTitle || document.title;
+            const url = menu?.dataset.shareUrl || window.location.href;
+            const platform = option.dataset.shareOption;
+
+            if (platform === 'copy') {
+                copyShareLink(option, url);
+                return; // keep the menu open briefly so the "copied" feedback is visible
+            }
+
+            const build = shareLinkBuilders[platform];
+            if (build) {
+                window.open(build(title, url), '_blank', 'noopener');
+            }
+            closeAllShareMenus();
+            return;
+        }
+
+        if (!event.target.closest('[data-share-menu]')) {
+            closeAllShareMenus();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeAllShareMenus();
+    });
+})();
+
 (() => {
     const scope = document.querySelector('[data-book-cover-source]');
     if (!scope) return;

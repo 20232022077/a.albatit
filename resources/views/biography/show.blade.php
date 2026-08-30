@@ -57,7 +57,7 @@
         </div>
 
         <div class="text-center lg:text-right">
-            <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl">{{ $contentItem->title }}</h1>
+            <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl">{{ $contentItem->title }} @include('partials.share-button', ['inline' => true, 'dark' => true, 'shareTitle' => $contentItem->title, 'shareUrl' => route('biography.show')])</h1>
             @if($contentItem->excerpt)<p class="mx-auto mt-4 max-w-xl text-lg leading-8 text-emerald-100 lg:mx-0">{{ $contentItem->excerpt }}</p>@endif
 
             @if(filled($basicInfo))
@@ -105,6 +105,7 @@
             <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach($books as $item)
                     <a href="{{ route('books.show', $item->slug) }}" class="group relative block overflow-hidden rounded-3xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('books.show', $item->slug)])
                         <span class="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-l from-amber-400 via-amber-300 to-amber-100"></span>
                         @if($item->book?->cover)
                             <img loading="lazy" src="{{ $item->book->cover->displayUrl() }}" alt="{{ $item->title }}" class="h-52 w-full object-cover transition duration-500 group-hover:scale-105">

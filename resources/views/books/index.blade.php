@@ -27,6 +27,7 @@
         <div class="mt-8 grid gap-6 sm:grid-cols-3 lg:grid-cols-4">
             @forelse($items as $item)
                 <a href="{{ route('books.show', $item->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('books.show', $item->slug)])
                     <span class="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-l from-amber-400 via-amber-300 to-amber-100"></span>
                     @if($item->book?->cover)
                         <div class="aspect-[3/4] overflow-hidden">

@@ -99,7 +99,8 @@
             <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse($quranCentrality as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
-                    <a href="{{ route('quran-centrality.show', $item->slug) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    <a href="{{ route('quran-centrality.show', $item->slug) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('quran-centrality.show', $item->slug)])
                         @if($cover = $item->coverImage())
                             <div class="aspect-[4/3] overflow-hidden">
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -139,6 +140,7 @@
                 @forelse($quraniyat as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
                     <a href="{{ route('quraniyat.show', $item->slug) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('quraniyat.show', $item->slug)])
                         <span class="absolute inset-x-6 top-0 z-10 h-px bg-gradient-to-l from-amber-400/70 via-amber-300/70 to-transparent"></span>
 
                         @if($cover = $item->coverImage())
@@ -180,7 +182,8 @@
                 <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     @foreach($wallPosts as $item)
                         @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
-                        <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white via-white to-emerald-100/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                        <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white via-white to-emerald-100/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                            @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                             <div class="flex items-center gap-2 border-b border-slate-100 px-5 py-3">
                                 @if($item->is_pinned)<span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">📌 مثبّت</span>@endif
                                 <p class="text-xs text-slate-400">{{ $item->published_at?->translatedFormat('j F Y') }}</p>
@@ -218,7 +221,8 @@
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse($reflections as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
-                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                         @if($cover = $item->coverImage())
                             <div class="aspect-[3/1] overflow-hidden">
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -262,6 +266,7 @@
             @forelse($books as $item)
                 @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
                 <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                     <span class="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-l from-amber-400 via-amber-300 to-amber-100"></span>
                     @if($item->book?->cover)
                         <div class="aspect-[3/4] overflow-hidden">
@@ -309,7 +314,8 @@
             <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse($programs as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
-                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                         <div class="aspect-video overflow-hidden bg-slate-100">
                             @if($cover = $item->coverImage())
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -352,7 +358,8 @@
             <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 @forelse($lectures as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
-                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                    <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
+                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                         <div class="aspect-video overflow-hidden bg-slate-100">
                             @if($cover = $item->coverImage())
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">

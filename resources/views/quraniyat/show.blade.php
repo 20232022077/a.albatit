@@ -48,6 +48,7 @@
                 <div class="flex flex-wrap items-center justify-center gap-3 text-sm text-slate-500 sm:justify-start">
                     @if($item->published_at)<span>{{ $item->published_at->translatedFormat('j F Y') }}</span>@endif
                     @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
+                    @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('quraniyat.show', $item->slug)])
                 </div>
             </div>
         </div>

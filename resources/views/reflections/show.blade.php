@@ -53,6 +53,7 @@
                     </span>
                 @endif
                 @if($item->categories->isNotEmpty())<span>{{ $item->categories->pluck('name')->join('، ') }}</span>@endif
+                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('reflections.show', $item->slug)])
             </div>
         </div>
 

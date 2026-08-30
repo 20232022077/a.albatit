@@ -17,6 +17,7 @@
             <div class="flex flex-wrap items-center gap-2">
                 @if($item->is_pinned)<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">📌 مثبّت</span>@endif
                 <p class="text-xs text-slate-400">{{ $item->published_at?->translatedFormat('j F Y') }}</p>
+                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
             </div>
             <h1 class="mt-1.5 text-xl font-extrabold leading-8 text-slate-800 sm:text-2xl">{{ $item->title }}</h1>
             @include('partials.card-divider', ['accent' => 'emerald'])
