@@ -23,7 +23,6 @@
         <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @forelse($items as $item)
                 <a href="{{ route('quran-centrality.show', $item->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('quran-centrality.show', $item->slug)])
                     @if($cover = $item->coverImage())
                         <div class="aspect-[4/3] overflow-hidden">
                             <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -31,7 +30,10 @@
                     @endif
                     <div class="flex flex-1 flex-col p-5">
                         <span class="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-700 ring-1 ring-emerald-100">{{ $typeLabels[$item->type] ?? $item->type }}</span>
-                        <h2 class="mt-2.5 text-lg font-bold leading-7">{{ $item->title }}</h2>
+                        <div class="mt-2.5 flex items-start justify-between gap-1.5">
+                            <h2 class="min-w-0 flex-1 text-lg font-bold leading-7">{{ $item->title }}</h2>
+                            @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('quran-centrality.show', $item->slug)])
+                        </div>
                         @include('partials.card-divider', ['accent' => 'slate'])
                         <p class="line-clamp-3 flex-1 text-sm leading-6 text-slate-600">{!! \App\Support\QuranTextHighlighter::highlightExcerpt((string) $item->body, 140, 'slate') !!}</p>
                         <span class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">

@@ -105,7 +105,6 @@
             <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach($books as $item)
                     <a href="{{ route('books.show', $item->slug) }}" class="group relative block overflow-hidden rounded-3xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('books.show', $item->slug)])
                         <span class="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-l from-amber-400 via-amber-300 to-amber-100"></span>
                         @if($item->book?->cover)
                             <img loading="lazy" src="{{ $item->book->cover->displayUrl() }}" alt="{{ $item->title }}" class="h-52 w-full object-cover transition duration-500 group-hover:scale-105">
@@ -113,7 +112,10 @@
                             <div class="h-52 w-full bg-amber-50"></div>
                         @endif
                         <div class="p-5">
-                            <h3 class="text-lg font-bold">{{ $item->title }}</h3>
+                            <div class="flex items-start justify-between gap-1.5">
+                                <h3 class="min-w-0 flex-1 text-lg font-bold">{{ $item->title }}</h3>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('books.show', $item->slug)])
+                            </div>
                             <span class="mt-1.5 block h-[3px] w-8 rounded-full bg-gradient-to-l from-amber-400 via-amber-300 to-amber-500"></span>
                             @if($item->excerpt)<p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{{ $item->excerpt }}</p>@endif
                             <span class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">

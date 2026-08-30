@@ -19,7 +19,6 @@
         <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @forelse($items as $item)
                 <a href="{{ route('programs.show', $item->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('programs.show', $item->slug)])
                     <div class="aspect-video overflow-hidden bg-slate-100">
                         @if($cover = $item->coverImage())
                             <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -31,7 +30,10 @@
                     </div>
                     <div class="flex flex-1 flex-col p-5">
                         <span class="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-700 ring-1 ring-emerald-100">برنامج</span>
-                        <h2 class="mt-2 text-lg font-bold leading-7">{{ $item->title }}</h2>
+                        <div class="mt-2 flex items-start justify-between gap-1.5">
+                            <h2 class="min-w-0 flex-1 text-lg font-bold leading-7">{{ $item->title }}</h2>
+                            @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('programs.show', $item->slug)])
+                        </div>
                         <span class="mt-1.5 block h-[3px] w-8 rounded-full bg-gradient-to-l from-amber-400 via-amber-300 to-amber-500"></span>
                         @if($item->excerpt)<p class="mt-1.5 line-clamp-2 flex-1 text-sm leading-6 text-slate-600">{{ $item->excerpt }}</p>@endif
                         @if($item->program?->presenter)

@@ -100,7 +100,6 @@
                 @forelse($quranCentrality as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
                     <a href="{{ route('quran-centrality.show', $item->slug) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('quran-centrality.show', $item->slug)])
                         @if($cover = $item->coverImage())
                             <div class="aspect-[4/3] overflow-hidden">
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -108,7 +107,10 @@
                         @endif
                         <div class="flex flex-1 flex-col p-5">
                             <span class="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-700 ring-1 ring-emerald-100">مركزية القرآن</span>
-                            <h3 class="mt-2.5 line-clamp-2 text-base font-bold leading-6">{{ $item->title }}</h3>
+                            <div class="mt-2.5 flex items-start justify-between gap-1.5">
+                                <h3 class="min-w-0 flex-1 line-clamp-2 text-base font-bold leading-6">{{ $item->title }}</h3>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('quran-centrality.show', $item->slug)])
+                            </div>
                             @include('partials.card-divider', ['accent' => 'slate'])
                             <p class="line-clamp-3 flex-1 text-sm leading-6 text-slate-600">{!! \App\Support\QuranTextHighlighter::highlightExcerpt((string) $item->body, 130, 'slate') !!}</p>
                             <span class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">
@@ -140,7 +142,6 @@
                 @forelse($quraniyat as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
                     <a href="{{ route('quraniyat.show', $item->slug) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('quraniyat.show', $item->slug)])
                         <span class="absolute inset-x-6 top-0 z-10 h-px bg-gradient-to-l from-amber-400/70 via-amber-300/70 to-transparent"></span>
 
                         @if($cover = $item->coverImage())
@@ -151,7 +152,10 @@
 
                         <div class="relative flex flex-1 flex-col bg-transparent p-6 pt-7">
                             <span class="inline-flex w-fit items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-100">✦ قرآنيات</span>
-                            <h3 class="mt-3 text-lg font-bold leading-7">{{ $item->title }}</h3>
+                            <div class="mt-3 flex items-start justify-between gap-1.5">
+                                <h3 class="min-w-0 flex-1 text-lg font-bold leading-7">{{ $item->title }}</h3>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('quraniyat.show', $item->slug)])
+                            </div>
                             @include('partials.card-divider', ['accent' => 'amber'])
                             <p class="line-clamp-3 flex-1 text-sm leading-7 text-slate-600">{{ \Illuminate\Support\Str::limit((string) $item->body, 120) }}</p>
                             <span class="mt-4 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">
@@ -183,13 +187,15 @@
                     @foreach($wallPosts as $item)
                         @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
                         <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white via-white to-emerald-100/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                            @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                             <div class="flex items-center gap-2 border-b border-slate-100 px-5 py-3">
                                 @if($item->is_pinned)<span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">📌 مثبّت</span>@endif
                                 <p class="text-xs text-slate-400">{{ $item->published_at?->translatedFormat('j F Y') }}</p>
                             </div>
                             <div class="flex flex-1 flex-col px-5 py-4">
-                                <h3 class="line-clamp-2 text-base font-extrabold leading-7 text-slate-800">{{ $item->title }}</h3>
+                                <div class="flex items-start justify-between gap-1.5">
+                                    <h3 class="min-w-0 flex-1 line-clamp-2 text-base font-extrabold leading-7 text-slate-800">{{ $item->title }}</h3>
+                                    @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
+                                </div>
                                 @include('partials.card-divider', ['accent' => 'emerald'])
                                 <p class="line-clamp-2 flex-1 text-sm leading-7 text-slate-600">{{ \Illuminate\Support\Str::limit((string) $item->body, 110) }}</p>
                                 <span class="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 transition group-hover:gap-2.5">
@@ -222,7 +228,6 @@
                 @forelse($reflections as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
                     <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-amber-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                         @if($cover = $item->coverImage())
                             <div class="aspect-[3/1] overflow-hidden">
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -232,7 +237,10 @@
                             @unless($cover)
                                 <span class="text-3xl leading-none text-amber-300/80" aria-hidden="true">”</span>
                             @endunless
-                            <h3 class="{{ $cover ? '' : '-mt-1' }} text-lg font-bold leading-7">{{ $item->title }}</h3>
+                            <div class="{{ $cover ? '' : '-mt-1' }} flex items-start justify-between gap-1.5">
+                                <h3 class="min-w-0 flex-1 text-lg font-bold leading-7">{{ $item->title }}</h3>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
+                            </div>
                             @include('partials.card-divider', ['accent' => 'amber'])
                             <p class="line-clamp-3 flex-1 text-sm leading-7 text-slate-600">{{ \Illuminate\Support\Str::limit((string) $item->body, 140) }}</p>
                             <div class="mt-4 flex items-center justify-between gap-2">
@@ -266,7 +274,6 @@
             @forelse($books as $item)
                 @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
                 <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                     <span class="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-l from-amber-400 via-amber-300 to-amber-100"></span>
                     @if($item->book?->cover)
                         <div class="aspect-[3/4] overflow-hidden">
@@ -274,7 +281,10 @@
                         </div>
                         <div class="p-4">
                             @if($item->book?->author_name)<p class="text-[11px] font-bold tracking-wide text-amber-700">{{ $item->book->author_name }}</p>@endif
-                            <h3 class="mt-1.5 line-clamp-1 font-bold">{{ $item->title }}</h3>
+                            <div class="mt-1.5 flex items-start justify-between gap-1.5">
+                                <h3 class="min-w-0 flex-1 line-clamp-1 font-bold">{{ $item->title }}</h3>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
+                            </div>
                             <span class="mt-1.5 block h-[3px] w-8 rounded-full bg-gradient-to-l from-amber-400 via-amber-300 to-amber-500"></span>
                             <span class="mt-2 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">
                                 قراءة الكتاب
@@ -284,7 +294,10 @@
                     @else
                         <div class="flex flex-1 flex-col justify-center bg-gradient-to-br from-white to-emerald-50 p-5 text-center">
                             @if($item->book?->author_name)<p class="text-[11px] font-bold tracking-wide text-amber-700">{{ $item->book->author_name }}</p>@endif
-                            <h3 class="mt-2 line-clamp-3 font-bold leading-6">{{ $item->title }}</h3>
+                            <div class="mt-2 flex items-start justify-center gap-1.5">
+                                <h3 class="line-clamp-3 font-bold leading-6">{{ $item->title }}</h3>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
+                            </div>
                             <span class="mx-auto mt-1.5 block h-[3px] w-8 rounded-full bg-gradient-to-l from-amber-400 via-amber-300 to-amber-500"></span>
                             <span class="mx-auto mt-2 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">
                                 قراءة الكتاب
@@ -315,7 +328,6 @@
                 @forelse($programs as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
                     <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                         <div class="aspect-video overflow-hidden bg-slate-100">
                             @if($cover = $item->coverImage())
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -327,7 +339,10 @@
                         </div>
                         <div class="flex flex-1 flex-col p-4">
                             <span class="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-700 ring-1 ring-emerald-100">برنامج</span>
-                            <h3 class="mt-2 line-clamp-2 text-sm font-bold leading-6">{{ $item->title }}</h3>
+                            <div class="mt-2 flex items-start justify-between gap-1.5">
+                                <h3 class="min-w-0 flex-1 line-clamp-2 text-sm font-bold leading-6">{{ $item->title }}</h3>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
+                            </div>
                             <span class="mt-1.5 block h-[3px] w-8 rounded-full bg-gradient-to-l from-amber-400 via-amber-300 to-amber-500"></span>
                             @if($item->program?->presenter)
                                 <div class="mt-auto flex items-center gap-1.5 border-t border-slate-100 pt-3 text-xs font-semibold text-slate-500">
@@ -359,7 +374,6 @@
                 @forelse($lectures as $item)
                     @php $cardVis = match(true) { $loop->index === 0 => 'flex', $loop->index === 1 => 'hidden sm:flex', default => 'hidden lg:flex' }; @endphp
                     <a href="{{ \App\Support\ContentUrl::for($item) }}" class="group relative {{ $cardVis }} flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                        @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
                         <div class="aspect-video overflow-hidden bg-slate-100">
                             @if($cover = $item->coverImage())
                                 <img loading="lazy" src="{{ $cover->displayUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
@@ -371,7 +385,10 @@
                         </div>
                         <div class="flex flex-1 flex-col p-4">
                             <span class="inline-flex w-fit items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-700 ring-1 ring-emerald-100">محاضرة</span>
-                            <h3 class="mt-2 line-clamp-2 text-sm font-bold leading-6">{{ $item->title }}</h3>
+                            <div class="mt-2 flex items-start justify-between gap-1.5">
+                                <h3 class="min-w-0 flex-1 line-clamp-2 text-sm font-bold leading-6">{{ $item->title }}</h3>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => \App\Support\ContentUrl::for($item)])
+                            </div>
                             <span class="mt-1.5 block h-[3px] w-8 rounded-full bg-gradient-to-l from-amber-400 via-amber-300 to-amber-500"></span>
                             @if($item->lecture?->speaker)
                                 <div class="mt-auto flex items-center gap-1.5 border-t border-slate-100 pt-3 text-xs font-semibold text-slate-500">

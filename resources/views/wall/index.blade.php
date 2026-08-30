@@ -20,13 +20,15 @@
             @forelse($items as $item)
                 @php($isPinned = (bool) $item->is_pinned)
                 <a href="{{ route('wall.show', $item->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white via-white to-emerald-100/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl {{ $isPinned ? 'ring-1 ring-amber-200 lg:col-span-2' : '' }}">
-                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('wall.show', $item->slug)])
                     <div class="border-b border-slate-100 px-5 py-3.5">
                         <div class="flex flex-wrap items-center gap-2">
                             @if($isPinned)<span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">📌 مثبّت</span>@endif
                             <p class="text-xs text-slate-400">{{ $item->published_at?->translatedFormat('j F Y') }}</p>
                         </div>
-                        <h2 class="mt-1 line-clamp-2 font-extrabold leading-7 text-slate-800 {{ $isPinned ? 'text-xl' : '' }}">{{ $item->title }}</h2>
+                        <div class="mt-1 flex items-start justify-between gap-1.5">
+                            <h2 class="min-w-0 flex-1 line-clamp-2 font-extrabold leading-7 text-slate-800 {{ $isPinned ? 'text-xl' : '' }}">{{ $item->title }}</h2>
+                            @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('wall.show', $item->slug)])
+                        </div>
                         @include('partials.card-divider', ['accent' => 'emerald'])
                     </div>
                     <div class="flex flex-1 flex-col px-5 py-4">

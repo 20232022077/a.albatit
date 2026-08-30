@@ -27,7 +27,6 @@
         <div class="mt-8 grid gap-6 sm:grid-cols-3 lg:grid-cols-4">
             @forelse($items as $item)
                 <a href="{{ route('books.show', $item->slug) }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-white to-emerald-50 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300/40 hover:shadow-2xl">
-                    @include('partials.share-button', ['shareTitle' => $item->title, 'shareUrl' => route('books.show', $item->slug)])
                     <span class="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-l from-amber-400 via-amber-300 to-amber-100"></span>
                     @if($item->book?->cover)
                         <div class="aspect-[3/4] overflow-hidden">
@@ -35,7 +34,10 @@
                         </div>
                         <div class="p-4">
                             @if($item->book?->author_name)<p class="text-[11px] font-bold tracking-wide text-amber-700">{{ $item->book->author_name }}</p>@endif
-                            <h2 class="mt-1.5 line-clamp-1 font-bold">{{ $item->title }}</h2>
+                            <div class="mt-1.5 flex items-start justify-between gap-1.5">
+                                <h2 class="min-w-0 flex-1 line-clamp-1 font-bold">{{ $item->title }}</h2>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('books.show', $item->slug)])
+                            </div>
                             <span class="mt-1.5 block h-[3px] w-8 rounded-full bg-gradient-to-l from-amber-400 via-amber-300 to-amber-500"></span>
                             <p class="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-500">{{ $item->excerpt }}</p>
                             <span class="mt-2 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">
@@ -46,7 +48,10 @@
                     @else
                         <div class="flex flex-1 flex-col justify-center bg-gradient-to-br from-white to-emerald-50 p-5 text-center">
                             @if($item->book?->author_name)<p class="text-[11px] font-bold tracking-wide text-amber-700">{{ $item->book->author_name }}</p>@endif
-                            <h2 class="mt-2 line-clamp-3 font-bold leading-6">{{ $item->title }}</h2>
+                            <div class="mt-2 flex items-start justify-center gap-1.5">
+                                <h2 class="line-clamp-3 font-bold leading-6">{{ $item->title }}</h2>
+                                @include('partials.share-button', ['inline' => true, 'shareTitle' => $item->title, 'shareUrl' => route('books.show', $item->slug)])
+                            </div>
                             <span class="mx-auto mt-1.5 block h-[3px] w-8 rounded-full bg-gradient-to-l from-amber-400 via-amber-300 to-amber-500"></span>
                             <span class="mx-auto mt-2 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 transition group-hover:gap-1.5">
                                 قراءة الكتاب
