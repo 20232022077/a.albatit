@@ -44,6 +44,17 @@ use Illuminate\Support\Str;
  * occasionally land a word early or late; it never fires on ordinary
  * prose, since that needs a genuinely dense run of these marks to
  * trigger at all — no manual tagging by admins required.
+ *
+ * Explicit marking: an admin who wants zero guessing at all — e.g. a verse
+ * pasted straight out of Word, already set in the same Uthmani font the
+ * site uses — can wrap it themselves in double square brackets:
+ * "[[فَبِأَيِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ]] الرحمن :". The bracketed text is
+ * wrapped verbatim, byte-for-byte, with none of the marker-density or
+ * word-gap logic above ever looking at it; a citation immediately after
+ * the closing "]]" is still reformatted exactly like the heuristic path
+ * does (see highlightExplicitMarkers()). Everything outside "[[...]]"
+ * still goes through the normal heuristic detection, so existing content
+ * that never used explicit markers keeps working unchanged.
  */
 class QuranTextHighlighter
 {
@@ -149,6 +160,30 @@ class QuranTextHighlighter
      *  stretch of "between" text, so an unrelated marked word earlier in
      *  ordinary prose ahead of some unrelated colon doesn't also qualify. */
     private const MIN_MARKED_WORDS = 2;
+
+    /** "[[...]]" — an admin-drawn boundary around a verse they want wrapped
+     *  exactly as typed/pasted, no heuristics involved at all. Non-greedy
+     *  so back-to-back markers on one line each close at their own "]]"
+     *  rather than one marker swallowing up to the last one on the line. */
+    private const EXPLICIT_MARKER_PATTERN = '/\[\[(.+?)\]\]/su';
+
+    /** Some Quran-typesetting fonts (Word's "KFGQPC HAFS Uthmanic Script"
+     *  among them) draw decorative brackets — or other ornamentation — by
+     *  repurposing obscure legacy Unicode "Arabic Presentation Forms"
+     *  ligature/positional-form characters (U+FB50-FDEF, U+FE70-FEFF) as a
+     *  private glyph slot, rather than the real portable ornate-parenthesis
+     *  characters. That glyph only exists inside that one font's own table
+     *  — copy the text out into any other font (this site's included) and
+     *  the *real* Unicode meaning of that codepoint renders instead, which
+     *  is essentially always garbled, unrelated-looking text. Stripped
+     *  entirely in stripFontArtifacts() before any detection runs, so a
+     *  verse pasted with one of these "brackets" around it degrades
+     *  gracefully to a plain, correctly-detectable quote instead of
+     *  garbage — this class's own OPEN_BRACKET/CLOSE_BRACKET (U+FD3E/FD3F,
+     *  which sit inside that same range) and the small set of religious-
+     *  phrase ligatures at U+FDF0-FDFF (ﷺ ﷽ …), which admins do
+     *  legitimately type on purpose, are carved out and left untouched. */
+    private const FONT_ARTIFACT_PATTERN = '/[\x{FB50}-\x{FD3D}\x{FD40}-\x{FDEF}\x{FE70}-\x{FEFF}]/u';
 
     private const VALID_ACCENTS = ['emerald', 'amber', 'slate'];
 
@@ -291,6 +326,18 @@ class QuranTextHighlighter
     }
 
     /**
+     * Removes font-specific decorative-glyph artifacts (see
+     * FONT_ARTIFACT_PATTERN) from raw, not-yet-escaped admin-typed text.
+     * Called on the raw body before anything else touches it, so a verse
+     * pasted with one of these fake "brackets" around it still reaches the
+     * detection/wrapping logic below as a clean, plain quote.
+     */
+    public static function stripFontArtifacts(string $text): string
+    {
+        return preg_replace(self::FONT_ARTIFACT_PATTERN, '', $text) ?? $text;
+    }
+
+    /**
      * For a card preview: truncates raw, unescaped body text to $limit
      * characters and highlights whatever verse text survives. A single-word
      * verse quoted on its own line (e.g. "ٱقۡرَأۡ") still needs a <br /> on
@@ -303,6 +350,7 @@ class QuranTextHighlighter
     public static function highlightExcerpt(string $rawText, int $limit, string $accent = 'emerald'): string
     {
         $accent = in_array($accent, self::VALID_ACCENTS, true) ? $accent : 'emerald';
+        $rawText = self::stripFontArtifacts($rawText);
 
         $truncated = Str::limit($rawText, $limit);
         // /u is required here — without it, PCRE's \R (which matches the
@@ -325,6 +373,52 @@ class QuranTextHighlighter
     }
 
     private static function highlightLine(string $text, string $accent): string
+    {
+        if (str_contains($text, '[[')) {
+            return self::highlightExplicitMarkers($text, $accent);
+        }
+
+        return self::highlightHeuristic($text, $accent);
+    }
+
+    /**
+     * Splits $text on "[[...]]" markers: each one's inner text is wrapped
+     * verbatim (see EXPLICIT_MARKER_PATTERN's docblock), and a citation
+     * immediately following (only whitespace in between) is consumed and
+     * reformatted the same way highlightHeuristic() reformats one after an
+     * auto-detected run. Everything else — before, between, and after the
+     * markers — is passed to highlightHeuristic() unchanged, so unmarked
+     * content on the same line still gets auto-detected as before.
+     */
+    private static function highlightExplicitMarkers(string $text, string $accent): string
+    {
+        $out = '';
+        $cursor = 0;
+
+        while (preg_match(self::EXPLICIT_MARKER_PATTERN, $text, $m, PREG_OFFSET_CAPTURE, $cursor) === 1) {
+            [$whole, $wholeStart] = $m[0];
+            $inner = $m[1][0];
+
+            $out .= self::highlightHeuristic(substr($text, $cursor, $wholeStart - $cursor), $accent);
+            $out .= self::wrap(trim($inner), $accent);
+            $cursor = $wholeStart + strlen($whole);
+
+            $rest = substr($text, $cursor);
+            $trimmedRest = ltrim($rest);
+            $leadingWs = substr($rest, 0, strlen($rest) - strlen($trimmedRest));
+            if (preg_match(self::CITATION_PATTERN, $trimmedRest, $citeMatch, PREG_OFFSET_CAPTURE) === 1
+                && $citeMatch[0][1] === 0) {
+                $out .= self::formatCitation($citeMatch[1][0], $citeMatch[2][0]);
+                $cursor += strlen($leadingWs) + strlen($citeMatch[0][0]);
+            }
+        }
+
+        $out .= self::highlightHeuristic(substr($text, $cursor), $accent);
+
+        return $out;
+    }
+
+    private static function highlightHeuristic(string $text, string $accent): string
     {
         if (preg_match(self::MARKER_PATTERN, $text) !== 1) {
             return $text;

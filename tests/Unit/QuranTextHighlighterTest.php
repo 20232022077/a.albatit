@@ -222,4 +222,89 @@ class QuranTextHighlighterTest extends TestCase
 
         $this->assertStringNotContainsString('quran-verse', $result[0]);
     }
+
+    public function test_an_explicitly_marked_verse_is_wrapped_verbatim_with_no_marker_needed(): void
+    {
+        // Ordinary typed tashkeel, precomposed forms throughout -- none of
+        // MARKER_PATTERN's Uthmani-only marks anywhere. The heuristic path
+        // would never wrap this on its own; an explicit [[...]] marker must
+        // still wrap it, since that's the entire point of the escape hatch.
+        $out = $this->render('نص عادي قبلها. [[هَذَا نَصٌّ عَادِيٌّ تَمَامًا بِلَا أَيِّ عَلَامَاتٍ مُمَيَّزَةٍ]] بعدها نص عادي.');
+
+        $this->assertStringContainsString('﴿هَذَا نَصٌّ عَادِيٌّ تَمَامًا بِلَا أَيِّ عَلَامَاتٍ مُمَيَّزَةٍ﴾', $out);
+        $this->assertStringContainsString('نص عادي قبلها.', $out);
+        $this->assertStringContainsString('بعدها نص عادي.', $out);
+    }
+
+    public function test_a_citation_right_after_an_explicit_marker_is_reformatted(): void
+    {
+        $out = $this->render('[[نَصٌّ مُعَلَّمٌ يَدَوِيًّا]] ٤ القصص :');
+
+        $this->assertStringContainsString('﴿نَصٌّ مُعَلَّمٌ يَدَوِيًّا﴾', $out);
+        $this->assertStringContainsString('(القصص: ٤)', $out);
+    }
+
+    public function test_an_explicit_marker_with_no_trailing_citation_is_wrapped_alone(): void
+    {
+        $out = $this->render('[[نَصٌّ بِلَا اسْتِشْهَادٍ بَعْدَهُ]] وبقية الجملة عادية.');
+
+        $this->assertStringContainsString('﴿نَصٌّ بِلَا اسْتِشْهَادٍ بَعْدَهُ﴾', $out);
+        $this->assertStringNotContainsString('quran-citation', $out);
+    }
+
+    public function test_two_explicit_markers_on_the_same_line_do_not_bleed_into_each_other(): void
+    {
+        $out = $this->render('[[أَوَّلُ آيَةٍ]] وبينهما نص. [[ثَانِي آيَةٍ]]');
+
+        $this->assertStringContainsString('﴿أَوَّلُ آيَةٍ﴾', $out);
+        $this->assertStringContainsString('﴿ثَانِي آيَةٍ﴾', $out);
+        $this->assertStringContainsString('وبينهما نص.', $out);
+    }
+
+    public function test_strip_font_artifacts_removes_words_fonts_fake_bracket_ligatures(): void
+    {
+        // The exact three characters a real admin reported seeing after
+        // pasting a verse "bracketed" using Word's KFGQPC HAFS Uthmanic
+        // Script font: U+FD51/FD53/FD54, standard Unicode ligature
+        // characters for unrelated letter combinations (teh-hah-jeem,
+        // teh-hah-meem, teh-khah-meem) that this specific font's glyph
+        // table repurposes to *draw* like a bracket -- meaningless, garbled
+        // text in any other font, this site's included.
+        $fakeBracket = "\u{FD51}\u{FD53}\u{FD54}";
+
+        $cleaned = QuranTextHighlighter::stripFontArtifacts("{$fakeBracket}إِنَّ فِرۡعَوۡنَ{$fakeBracket}");
+
+        $this->assertSame('إِنَّ فِرۡعَوۡنَ', $cleaned);
+    }
+
+    public function test_strip_font_artifacts_keeps_the_sites_own_ornate_brackets(): void
+    {
+        $text = '﴿إِنَّ فِرۡعَوۡنَ﴾';
+
+        $this->assertSame($text, QuranTextHighlighter::stripFontArtifacts($text));
+    }
+
+    public function test_strip_font_artifacts_keeps_legitimate_religious_ligatures(): void
+    {
+        // ﷺ (U+FDFA, "sallallahou alayhe wasallam") and ﷽ (U+FDFD,
+        // "bismillah ar-rahman ar-raheem") are real, commonly and
+        // intentionally typed ligatures on an Islamic site -- must survive
+        // even though they sit in the same Unicode block as the garbled
+        // font-artifact ligatures being stripped.
+        $text = "محمد \u{FDFA} \u{FDFD}";
+
+        $this->assertSame($text, QuranTextHighlighter::stripFontArtifacts($text));
+    }
+
+    public function test_a_verse_pasted_with_fake_font_bracket_ligatures_is_still_detected_and_wrapped_correctly(): void
+    {
+        $fakeBracket = "\u{FD51}\u{FD53}\u{FD54}";
+        $raw = "قبل الآية.\n{$fakeBracket}إِنَّ فِرۡعَوۡنَ عَلَا فِي ٱلۡأَرۡضِ{$fakeBracket} ٤ القصص :";
+
+        $out = QuranTextHighlighter::highlightExcerpt($raw, 200, 'slate');
+
+        $this->assertStringContainsString('﴿إِنَّ فِرۡعَوۡنَ عَلَا فِي ٱلۡأَرۡضِ﴾', $out);
+        $this->assertStringContainsString('(القصص: ٤)', $out);
+        $this->assertStringNotContainsString("\u{FD51}", $out);
+    }
 }

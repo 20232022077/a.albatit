@@ -15,7 +15,9 @@
     // whole body then renders as one paragraph, which also throws off
     // QuranTextHighlighter's line-by-line verse/citation matching since
     // unrelated paragraphs end up sharing one "line").
-    $normalized = str_replace(["\r\n", "\r"], "\n", trim((string) ($text ?? '')));
+    $normalized = \App\Support\QuranTextHighlighter::stripFontArtifacts(
+        str_replace(["\r\n", "\r"], "\n", trim((string) ($text ?? '')))
+    );
     $rawParagraphs = array_values(array_filter(
         preg_split('/\n\s*\n/u', $normalized),
         fn (string $p) => trim($p) !== ''
