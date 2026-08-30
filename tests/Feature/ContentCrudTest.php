@@ -440,6 +440,28 @@ class ContentCrudTest extends TestCase
         $this->assertDatabaseHas('content_items', ['id' => $episode->id, 'deleted_at' => null]);
     }
 
+    public function test_admin_book_index_defaults_to_newest_first_with_pinned_items_always_on_top(): void
+    {
+        $admin = $this->userWithPermissions(['content.view']);
+
+        $older = ContentItem::create(['type' => 'book', 'title' => 'كتاب قديم', 'slug' => 'older-book', 'status' => 'draft']);
+        Book::create(['content_item_id' => $older->id, 'author_name' => 'مؤلف']);
+        $older->forceFill(['created_at' => now()->subDays(5)])->save();
+
+        $newer = ContentItem::create(['type' => 'book', 'title' => 'كتاب جديد', 'slug' => 'newer-book', 'status' => 'draft']);
+        Book::create(['content_item_id' => $newer->id, 'author_name' => 'مؤلف']);
+
+        // Oldest of the three by creation date, but pinned -- must still
+        // land first, ahead of both unpinned items above it.
+        $pinned = ContentItem::create(['type' => 'book', 'title' => 'كتاب مثبت', 'slug' => 'pinned-book', 'status' => 'draft', 'is_pinned' => true]);
+        Book::create(['content_item_id' => $pinned->id, 'author_name' => 'مؤلف']);
+        $pinned->forceFill(['created_at' => now()->subDays(10)])->save();
+
+        $response = $this->actingAs($admin)->get(route('admin.books.index'));
+
+        $response->assertSeeTextInOrder(['كتاب مثبت', 'كتاب جديد', 'كتاب قديم']);
+    }
+
     public function test_soft_deleted_content_is_hidden_from_public_listing_and_show_page(): void
     {
         $item = ContentItem::create(['type' => 'book', 'title' => 'كتاب محذوف', 'slug' => 'deleted-book', 'status' => 'published', 'published_at' => now()]);

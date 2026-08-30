@@ -25,8 +25,8 @@ class LectureController extends Controller
     {
         $this->authorize('permission', 'content.view');
 
-        $sort = in_array($request->string('sort')->toString(), self::SORTABLE, true) ? $request->string('sort')->toString() : 'sort_order';
-        $dir = $request->string('dir')->toString() === 'desc' ? 'desc' : 'asc';
+        $sort = in_array($request->string('sort')->toString(), self::SORTABLE, true) ? $request->string('sort')->toString() : 'created_at';
+        $dir = $request->string('dir')->toString() === 'asc' ? 'asc' : 'desc';
 
         $items = ContentItem::query()
             ->ofType('lecture')
@@ -37,6 +37,7 @@ class LectureController extends Controller
                 'categories', fn (Builder $c) => $c->where('categories.id', $request->integer('category_id'))
             ))
             ->search($request->string('q')->toString() ?: null)
+            ->pinnedFirst()
             ->orderBy($sort, $dir)
             ->paginate(20)
             ->withQueryString();

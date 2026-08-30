@@ -34,6 +34,7 @@ class WallPostController extends Controller
             ->when($request->boolean('trashed'), fn (Builder $q) => $q->onlyTrashed())
             ->when($request->filled('status'), fn (Builder $q) => $q->where('status', $request->string('status')->toString()))
             ->search($request->string('q')->toString() ?: null)
+            ->pinnedFirst()
             ->orderBy($sort, $dir)
             ->paginate(20)
             ->withQueryString();
