@@ -87,6 +87,20 @@ class QuranTextHighlighter
      *  extendStartBack()) must never reach across it into a verse run. */
     private const SENTENCE_END_PATTERN = '/[.؟!]$/u';
 
+    /** A quotation mark anywhere in a token — ASCII, guillemets, or the
+     *  "smart quotes" Word's autocorrect turns straight ones into. A word
+     *  touching one of these is part of the *author's own* quoted aside
+     *  (e.g. "من "يا ليت" إلى قُمۡ", contrasting an idiom with a verse), never
+     *  the Qur'an verse itself, so both extendStartBack() and the colon
+     *  search below must never cross one. */
+    private const QUOTE_PATTERN = '/["«»\x{201C}\x{201D}\x{2018}\x{2019}]/u';
+
+    /** How far back (in words) findPrecedingColonWordIndex() will look for
+     *  a colon introducing a fresh quotation. Same value as MAX_GAP purely
+     *  because both represent "a reasonable stretch of an author's own
+     *  lead-in prose" — not because the two searches are related. */
+    private const COLON_LOOKBACK = 6;
+
     /** "٤ القصص:" / "هود:" / "١٨هود:" / "٧٨ آل عِمۡرَان:" — an optional
      *  Arabic-Indic verse number (glued to the surah name or separated by a
      *  space — admins write both), then the surah name, an optional space,
@@ -134,14 +148,19 @@ class QuranTextHighlighter
 
     /** How far back (in words) a run's start may reach past its first
      *  marked word — short, since this is only meant to catch a verse's
-     *  own opening connective(s), not swallow the author's lead-in prose.
-     *  2 rather than 1: a verse's own genuine opening word occasionally
-     *  carries no marker itself (e.g. "إِنِّي" — plain kasra/shadda only)
-     *  and only the word *after* it does, so a 1-word reach can strand the
-     *  verse's real first word outside the bracket. Still short enough that
-     *  the sentence-end/no-letter checks in extendStartBack() catch the
-     *  common case of admin prose right before a quote either way. */
-    private const LEAD_IN_TOLERANCE = 2;
+     *  own opening connective, not swallow the author's lead-in prose. A
+     *  verse's own genuine opening word occasionally carries no marker
+     *  itself and needs more than a 1-word reach (e.g. "إِنِّي" before
+     *  "إِلَىٰ" in "إِنِّي ذَاهِبٌ إِلَىٰ رَبِّي") — but widening this constant
+     *  itself to fix that turned out to also reach back across an
+     *  unrelated quoted aside elsewhere in the same sentence (e.g. "من "يا
+     *  لَيْتَ" إلى قُمۡ" started swallowing "لَيْتَ" too). The real, narrower
+     *  fix lives in findPrecedingColonWordIndex(): a colon within reach is
+     *  trusted as a much stronger boundary and can extend the reach
+     *  further than this constant alone, since a fresh quotation
+     *  conventionally starts right after one — this constant stays at the
+     *  original, conservative 1 for everything else. */
+    private const LEAD_IN_TOLERANCE = 1;
 
     /** A run must contain at least this many individually-marked words to
      *  be wrapped — filters out a single incidentally-voweled word. Waived
@@ -439,19 +458,26 @@ class QuranTextHighlighter
             // than MAX_GAP would otherwise allow.
             $matchedVerse = false;
             $runOutput = self::runHighlight($between, $accent, true, $matchedVerse);
+
+            // This "citation-shaped" text didn't genuinely follow a
+            // detected verse — it was just an ordinary "كلمة أخرى:"-style
+            // phrase in the author's own prose (e.g. "قال:", "بثقة:").
+            // Leaving $cursor exactly where it was — not advancing past
+            // this match, and not emitting anything for it here — lets the
+            // *next* match's $between naturally re-absorb this stretch as
+            // ordinary text instead of a boundary. Advancing past it
+            // anyway would silently cut a real verse's own colon-based
+            // lead-in search (see findPrecedingColonWordIndex()) off from
+            // a colon that comes before this false match.
+            if (! $matchedVerse) {
+                continue;
+            }
+
             // Trailing whitespace left over from $between (e.g. the space
             // before "١٨ هود:" in the source) would otherwise double up
             // with formatCitation()'s own leading space.
-            $out .= $matchedVerse ? rtrim($runOutput) : $runOutput;
-
-            // Only re-render the citation if it genuinely followed a
-            // detected verse — otherwise this "citation-shaped" text was
-            // just an ordinary "كلمة أخرى:"-style phrase in the author's
-            // own prose, and must be left exactly as written.
-            $out .= $matchedVerse
-                ? self::formatCitation($matches[1][$i][0], $matches[2][$i][0])
-                : $citation;
-
+            $out .= rtrim($runOutput);
+            $out .= self::formatCitation($matches[1][$i][0], $matches[2][$i][0]);
             $cursor = $citationStart + strlen($citation);
         }
         $out .= self::runHighlight(substr($text, $cursor), $accent, false);
@@ -617,11 +643,29 @@ class QuranTextHighlighter
      * of left outside it. Never crosses a word ending in sentence-final
      * punctuation ("عبادة الأسلاف. بَلۡ نَتَّبِعُ…" must not pull the period-
      * ending "الأسلاف." — the end of the author's own previous sentence —
-     * into the quote that follows it).
+     * into the quote that follows it), nor a word touching a quotation
+     * mark (see QUOTE_PATTERN) — that's the author's own quoted aside, not
+     * the verse. findPrecedingColonWordIndex() can widen the reach beyond
+     * $tolerance when a colon is found first; see its own docblock.
      */
     private static function extendStartBack(int $tokenIndex, int $floor, array $tokens, array $tokenWordIndex, int $tolerance): int
     {
         $targetWordIndex = max($tokenWordIndex[$tokenIndex] - $tolerance, $tokenWordIndex[$floor] ?? 0);
+
+        // A colon overrides the tolerance-based target entirely rather than
+        // just widening it (min()) — for an anchor-widened $tolerance
+        // (see ANCHOR_MAX_GAP in runHighlight()) that matters: real
+        // production regression: "...أعلن: إِنَّ ٱللَّهَ لَا يُغَيِّرُ ...
+        // بِأَنفُسِهِمۡ ۗ" — the terminal waqf mark on the *last* word makes
+        // this whole group anchor-tolerant, and a wide tolerance alone
+        // would happily reach right past the colon into "لكن القرآن أعلن
+        // أول ما أعلن:", the author's own lead-in sentence. The colon is
+        // strictly more precise evidence of the true boundary whenever one
+        // is found, so it wins outright instead of just being blended in.
+        $colonWordIndex = self::findPrecedingColonWordIndex($tokenIndex, $floor, $tokens, $tokenWordIndex);
+        if ($colonWordIndex !== null) {
+            $targetWordIndex = $colonWordIndex;
+        }
 
         $newStart = $tokenIndex;
         while ($newStart > $floor && $tokenWordIndex[$newStart - 1] >= $targetWordIndex) {
@@ -632,6 +676,9 @@ class QuranTextHighlighter
             // whitespace right before it.
             if ($candidate !== '') {
                 if (preg_match(self::SENTENCE_END_PATTERN, $candidate) === 1) {
+                    break;
+                }
+                if (preg_match(self::QUOTE_PATTERN, $candidate) === 1) {
                     break;
                 }
                 // A lone "،" left standing between two citations (e.g.
@@ -646,6 +693,44 @@ class QuranTextHighlighter
         }
 
         return $newStart;
+    }
+
+    /**
+     * Looks up to COLON_LOOKBACK words back from $tokenIndex for a token
+     * ending in ":" — a colon conventionally introduces a fresh quotation
+     * ("...بثقة: إِنِّي ذَاهِبٌ إِلَىٰ..."), which is stronger evidence than a
+     * plain word-count tolerance that everything back to right after it is
+     * the verse itself, even when its own opening word(s) carry no marker.
+     * Stops the search (returns null) at the same boundaries
+     * extendStartBack() itself respects — sentence-end punctuation, a
+     * quotation mark, or a no-letter token — so a colon further back than
+     * an unrelated quoted aside or a previous sentence is never reached.
+     */
+    private static function findPrecedingColonWordIndex(int $tokenIndex, int $floor, array $tokens, array $tokenWordIndex): ?int
+    {
+        $limitWordIndex = max($tokenWordIndex[$tokenIndex] - self::COLON_LOOKBACK, $tokenWordIndex[$floor] ?? 0);
+
+        $i = $tokenIndex;
+        while ($i > $floor && $tokenWordIndex[$i - 1] >= $limitWordIndex) {
+            $candidate = trim($tokens[$i - 1]);
+            if ($candidate !== '') {
+                if (str_ends_with($candidate, ':') || str_ends_with($candidate, '：')) {
+                    return $tokenWordIndex[$i - 1] + 1;
+                }
+                if (preg_match(self::SENTENCE_END_PATTERN, $candidate) === 1) {
+                    return null;
+                }
+                if (preg_match(self::QUOTE_PATTERN, $candidate) === 1) {
+                    return null;
+                }
+                if (preg_match('/\p{L}/u', $candidate) !== 1) {
+                    return null;
+                }
+            }
+            $i--;
+        }
+
+        return null;
     }
 
     private static function wrap(string $innerText, string $accent): string

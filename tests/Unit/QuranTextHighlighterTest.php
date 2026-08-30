@@ -33,6 +33,23 @@ class QuranTextHighlighterTest extends TestCase
         $this->assertStringContainsString('(القَصَص: ٤)', $out);
     }
 
+    public function test_a_narrative_word_before_a_colon_is_never_treated_as_a_fake_citation(): void
+    {
+        // Real production regression: "قال:" (an ordinary "he said:" right
+        // after a properly-wrapped verse and before an unrelated quote)
+        // matches CITATION_PATTERN's generic "single word + colon" shape,
+        // but isn't a real surah name -- it must stay exactly as written,
+        // not turn into a "(قال)" badge, and critically must not silently
+        // consume the colon a later verse on the same line needs for its
+        // own lead-in search (see findPrecedingColonWordIndex()).
+        $out = $this->render('فسمعه يقرأ هذه الآية : ٱتَّخَذُوٓاْ أَحۡبَارَهُمۡ أَرۡبَابٗا ٣١ التَّوۡبَة : قال: فقلت له بثقة: إِنِّي ذَاهِبٌ إِلَىٰ رَبِّي سَيَهۡدِينِ ٩٩ الصَّافَّات :.');
+
+        $this->assertStringNotContainsString('(قال)', $out);
+        $this->assertStringContainsString('قال:', $out);
+        $this->assertStringContainsString('﴿ٱتَّخَذُوٓاْ أَحۡبَارَهُمۡ أَرۡبَابٗا﴾', $out);
+        $this->assertStringContainsString('﴿إِنِّي ذَاهِبٌ إِلَىٰ رَبِّي سَيَهۡدِينِ﴾', $out);
+    }
+
     public function test_a_verse_number_glued_to_the_surah_name_still_splits_correctly(): void
     {
         $out = $this->render('أَلَا لَعۡنَةُ ٱللَّهِ عَلَى ٱلظَّٰلِمِينَ ١٨هُود : .');
@@ -64,17 +81,48 @@ class QuranTextHighlighterTest extends TestCase
         $this->assertStringContainsString('﴿بَلۡ نَتَّبِعُ', $out);
     }
 
-    public function test_a_two_word_lead_in_reaches_the_verses_own_unmarked_opening_word(): void
+    public function test_a_colon_before_an_unmarked_verse_opening_reaches_all_the_way_back_to_it(): void
     {
         // "إِنِّي" (plain kasra/shadda only) is the verse's own first word,
         // but only the word after it ("إِلَىٰ", via the dagger-alif) carries
         // any marker -- a 1-word lead-in reach would strand "إِنِّي" outside
         // the bracket even though it's grammatically part of the verse, not
-        // the author's own lead-in prose.
+        // the author's own lead-in prose. The colon right before it is what
+        // makes reaching back two words safe here (see
+        // findPrecedingColonWordIndex()).
         $out = $this->render('وصار يستقبله بثقة: إِنِّي ذَاهِبٌ إِلَىٰ رَبِّي سَيَهۡدِينِ ٩٩ الصَّافَّات :.');
 
         $this->assertStringContainsString('﴿إِنِّي ذَاهِبٌ إِلَىٰ رَبِّي سَيَهۡدِينِ﴾', $out);
         $this->assertStringNotContainsString('﴿بثقة', $out);
+    }
+
+    public function test_a_quoted_aside_before_the_verse_is_never_pulled_into_the_bracket(): void
+    {
+        // Real production regression: "من "يا لَيْتَ" إلى قُمْ (المدثر:)" --
+        // "قُمْ" alone is the verse (Al-Muddathir 74:2); "من "يا لَيْتَ" إلى"
+        // is the author's own rhetorical contrast, with no colon anywhere
+        // to justify reaching back across the quoted "يا لَيْتَ" at all.
+        $out = $this->render('القرآن نقل الأمة من التواكل إلى الإرادة، من "يا لَيْتَ" إلى قُمۡ المُدَّثِّر :.');
+
+        $this->assertStringNotContainsString('﴿يا', $out);
+        $this->assertStringNotContainsString('﴿لَيْتَ', $out);
+        $this->assertStringContainsString('لَيْتَ', $out);
+        $this->assertStringContainsString('قُمۡ﴾', $out);
+    }
+
+    public function test_a_colon_wins_over_a_wide_anchor_lead_in_reach_instead_of_just_widening_it(): void
+    {
+        // Real production regression: a terminal waqf mark on the verse's
+        // *last* word (ۗ) makes the whole marked-word group anchor-tolerant
+        // (see ANCHOR_MAX_GAP in runHighlight()), and that wide tolerance
+        // alone would happily reach right past the colon into the author's
+        // own lead-in sentence ("لكن القرآن أعلن أول ما أعلن:") -- a colon
+        // found on the way back must override that wide tolerance outright,
+        // not just be blended into it via a plain minimum.
+        $out = $this->render('لكن القرآن أعلن أول ما أعلن: إِنَّ ٱللَّهَ لَا يُغَيِّرُ مَا بِقَوۡمٍ حَتَّىٰ يُغَيِّرُواْ مَا بِأَنفُسِهِمۡۗ الرَّعۡد :.');
+
+        $this->assertStringContainsString('﴿إِنَّ ٱللَّهَ لَا يُغَيِّرُ مَا بِقَوۡمٍ حَتَّىٰ يُغَيِّرُواْ مَا بِأَنفُسِهِمۡۗ﴾', $out);
+        $this->assertStringNotContainsString('﴿لكن', $out);
     }
 
     public function test_a_verse_with_only_one_marked_word_is_still_wrapped_when_a_citation_follows(): void
