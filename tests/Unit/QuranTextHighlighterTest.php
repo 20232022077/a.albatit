@@ -355,4 +355,110 @@ class QuranTextHighlighterTest extends TestCase
         $this->assertStringContainsString('(القصص: ٤)', $out);
         $this->assertStringNotContainsString("\u{FD51}", $out);
     }
+
+    public function test_this_fonts_own_verse_bracket_ligatures_are_trusted_verbatim_even_with_no_markers(): void
+    {
+        // Real production regression: "فَبِأَيِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ" (the
+        // Ar-Rahman refrain) carries none of MARKER_PATTERN's marks at all,
+        // so once the old code simply deleted the font's own U+FD5F/FD5E
+        // bracket ligatures around it, the diacritic heuristic below found
+        // nothing to detect and the verse rendered as plain, unformatted
+        // text. Converting those ligatures to "[[...]]" instead (see
+        // VERSE_OPEN_ARTIFACT) routes it through the no-guessing explicit
+        // path, which needs no markers at all.
+        $raw = "مقدمة.\n\u{FD5F}فَبِأَيِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ\u{FD5E} ، تتكرر كثيرًا.";
+
+        $out = QuranTextHighlighter::highlightExcerpt($raw, 200, 'slate');
+
+        $this->assertStringContainsString('﴿فَبِأَيِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ﴾', $out);
+        $this->assertStringContainsString('، تتكرر كثيرًا', $out);
+    }
+
+    public function test_a_verse_opening_a_paragraph_via_font_bracket_ligatures_is_wrapped_not_left_plain(): void
+    {
+        // Real production regression: "وَقُلِ ٱعۡمَلُواْ" as a body's opening
+        // line, ligature-bracketed in Word, rendered as bare unformatted
+        // text on the live card excerpt.
+        $raw = "\u{FD5F}وَقُلِ ٱعۡمَلُواْ\u{FD5E}\nجاء القرآن في زمن كان الناس فيه ينتظرون.";
+
+        $out = QuranTextHighlighter::highlightExcerpt($raw, 60, 'slate');
+
+        $this->assertStringContainsString('﴿وَقُلِ ٱعۡمَلُواْ﴾', $out);
+    }
+
+    public function test_a_quoted_idiom_before_a_font_bracketed_verse_stays_outside_it(): void
+    {
+        // Real production regression: with only the single word "قُمۡ"
+        // ligature-bracketed in the source (correctly), the old
+        // strip-then-reguess heuristic still reached back across the
+        // authors own quoted "يا ليت" aside and swallowed it into the
+        // verse. Trusting the font's own narrow bracket verbatim via the
+        // explicit-marker path can't reach back at all.
+        $raw = 'القرآن نقل الأمة من التواكل إلى الإرادة، من "يا ليت" إلى '
+            ."\u{FD5F}قُمۡ\u{FD5E} \u{FD5D}المُدَّثِّر : \u{FD52}\u{FD5C}.";
+
+        $out = QuranTextHighlighter::highlightExcerpt($raw, 200, 'slate');
+
+        $this->assertStringContainsString('﴿قُمۡ﴾', $out);
+        $this->assertStringNotContainsString('يا ليت﴾', $out);
+        $this->assertStringNotContainsString('﴿يا ليت', $out);
+        $this->assertStringContainsString('&quot;يا ليت&quot;', $out);
+    }
+
+    public function test_an_unrelated_sentence_around_a_narrow_font_bracketed_verse_is_never_swallowed(): void
+    {
+        // Real production regression: the source correctly ligature-
+        // bracketed only "فَرِيضَةٗ مِّنَ ٱللَّهِۗ", but the old heuristic
+        // over-extended the wrap to the entire surrounding sentence once
+        // the bracket markers were simply deleted before it ran.
+        $raw = 'ليست صدقة تطوعية، '."\u{FD5F}فَرِيضَةٗ مِّنَ ٱللَّهِۗ\u{FD5E}"
+            .'، وجعلها مؤسسة كبيرة داخل المجتمع الإسلامي.';
+
+        $out = QuranTextHighlighter::highlightExcerpt($raw, 200, 'slate');
+
+        $this->assertStringContainsString('﴿فَرِيضَةٗ مِّنَ ٱللَّهِۗ﴾', $out);
+        $this->assertStringContainsString('ليست صدقة تطوعية،', $out);
+        $this->assertStringNotContainsString('تطوعية، ﴿', $out);
+        $this->assertStringNotContainsString('الإسلامي.﴾', $out);
+    }
+
+    public function test_a_citation_glued_directly_onto_the_verse_close_ligature_still_splits_cleanly(): void
+    {
+        // Real production regression: the citation-open ligature was typed
+        // with zero whitespace before it, directly onto the verse-close
+        // ligature ("...بِٱلۡمَعۡرُوفِۚ" immediately followed by the citation
+        // marker) — simply deleting both fused the surah name onto the
+        // verse's own last word into one unsplittable token, dropping the
+        // citation and pulling "البقرة" itself inside the bracket.
+        $raw = 'فقالها القرآن صراحةً: '
+            ."\u{FD5F}وَلَهُنَّ مِثۡلُ ٱلَّذِي عَلَيۡهِنَّ بِٱلۡمَعۡرُوفِۚ\u{FD5E}\u{FD5D}البَقَرَةِ : \u{FD58}\u{FD52}\u{FD52}\u{FD5C}";
+
+        $out = QuranTextHighlighter::highlightExcerpt($raw, 200, 'slate');
+
+        $this->assertStringContainsString('﴿وَلَهُنَّ مِثۡلُ ٱلَّذِي عَلَيۡهِنَّ بِٱلۡمَعۡرُوفِۚ﴾', $out);
+        $this->assertStringContainsString('(البَقَرَةِ)', $out);
+        $this->assertStringNotContainsString('البَقَرَةِ﴾', $out);
+    }
+
+    public function test_the_rare_uthmani_small_low_meem_mark_is_stripped_from_display(): void
+    {
+        // Real production regression: U+06ED (a genuine but rare Uthmani
+        // annotation mark) has no dedicated glyph in this site's Qur'an
+        // webfont and renders as a stray circular fallback glyph —
+        // stripped by explicit editorial request.
+        $out = QuranTextHighlighter::stripFontArtifacts("سَوَآءِ\u{06ED}");
+
+        $this->assertSame('سَوَآءِ', $out);
+    }
+
+    public function test_an_unbalanced_font_bracket_ligature_falls_back_to_plain_deletion(): void
+    {
+        // A stray, unpaired ligature (e.g. an admin deleted just the
+        // closing half while editing) must never leak a literal, visible
+        // "[[" into the rendered prose.
+        $out = QuranTextHighlighter::stripFontArtifacts("قبل \u{FD5F}إِنَّ فِرۡعَوۡنَ بعد");
+
+        $this->assertStringNotContainsString('[[', $out);
+        $this->assertStringNotContainsString("\u{FD5F}", $out);
+    }
 }

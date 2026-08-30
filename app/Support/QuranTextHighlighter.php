@@ -204,6 +204,44 @@ class QuranTextHighlighter
      *  legitimately type on purpose, are carved out and left untouched. */
     private const FONT_ARTIFACT_PATTERN = '/[\x{FB50}-\x{FD3D}\x{FD40}-\x{FDEF}\x{FE70}-\x{FEFF}]/u';
 
+    /** This same font's own opening/closing verse-boundary ligatures —
+     *  drawn when an admin uses the font's own "wrap in Qur'an brackets"
+     *  keyboard shortcut in Word. Unlike every other artifact above, these
+     *  are converted (in stripFontArtifacts()) into this class's own
+     *  EXPLICIT_MARKER_PATTERN syntax rather than simply discarded: a real
+     *  production regression hit five separate articles where the
+     *  diacritic-density heuristic got the boundary wrong after the old
+     *  strip-then-reguess approach threw this information away — either
+     *  swallowing an unrelated aside/citation into the run, or failing to
+     *  detect a verse at all because its specific wording happens to carry
+     *  none of MARKER_PATTERN's marks (e.g. "فَبِأَيِّ ءَالَآءِ رَبِّكُمَا
+     *  تُكَذِّبَانِ") — while the font's own bracket, placed by a human at the
+     *  true edge, was correct in every single case. */
+    private const VERSE_OPEN_ARTIFACT = "\u{FD5F}";
+
+    private const VERSE_CLOSE_ARTIFACT = "\u{FD5E}";
+
+    /** Same font's citation-boundary ligatures, wrapping the "سورة: رقم"
+     *  reference that follows a verse. The opening one is sometimes typed
+     *  with zero whitespace before it — glued directly onto the verse-close
+     *  ligature above, e.g. "...بِٱلۡمَعۡرُوفِۚ" immediately followed by this
+     *  with no space — which, in a real production regression, fused the
+     *  surah name onto the verse's own last word into one unsplittable
+     *  token once both ligatures were simply deleted. Replaced with a real
+     *  space instead of nothing (see stripFontArtifacts()) so a word
+     *  boundary always exists before the citation regardless of how the
+     *  admin happened to type it. */
+    private const CITATION_OPEN_ARTIFACT = "\u{FD5D}";
+
+    private const CITATION_CLOSE_ARTIFACT = "\u{FD5C}";
+
+    /** ARABIC SMALL LOW MEEM — a genuine, if rare, Uthmani recitation
+     *  annotation mark, but one this site's Qur'an webfont has no dedicated
+     *  glyph for, so it renders as a generic fallback dot/circle that reads
+     *  as a display glitch rather than typography. Stripped from display by
+     *  explicit editorial request, independent of any boundary detection. */
+    private const DISPLAY_ONLY_STRIP_PATTERN = '/\x{06ED}/u';
+
     private const VALID_ACCENTS = ['emerald', 'amber', 'slate'];
 
     private const OPEN_BRACKET = '﴿';
@@ -350,9 +388,32 @@ class QuranTextHighlighter
      * Called on the raw body before anything else touches it, so a verse
      * pasted with one of these fake "brackets" around it still reaches the
      * detection/wrapping logic below as a clean, plain quote.
+     *
+     * The verse- and citation-boundary ligatures (VERSE_OPEN_ARTIFACT etc.)
+     * are handled first and specially: converted into "[[...]]", not just
+     * deleted, so they're picked up as an explicit, no-guessing boundary
+     * by highlightExplicitMarkers() later — see those constants' docblocks
+     * for why this is more reliable than the diacritic heuristic. Only
+     * done when the open/close markers appear in equal numbers; an admin
+     * who deleted just one half while editing would otherwise leave a
+     * stray, visible "[[" or "]]" in the rendered prose, so an imbalance
+     * falls back to plain deletion via FONT_ARTIFACT_PATTERN below instead,
+     * exactly like every other artifact in this range.
      */
     public static function stripFontArtifacts(string $text): string
     {
+        if (substr_count($text, self::VERSE_OPEN_ARTIFACT) === substr_count($text, self::VERSE_CLOSE_ARTIFACT)) {
+            $text = str_replace(self::VERSE_OPEN_ARTIFACT, '[[', $text);
+            $text = str_replace(self::VERSE_CLOSE_ARTIFACT, ']]', $text);
+        }
+
+        if (substr_count($text, self::CITATION_OPEN_ARTIFACT) === substr_count($text, self::CITATION_CLOSE_ARTIFACT)) {
+            $text = preg_replace('/\s*'.self::CITATION_OPEN_ARTIFACT.'\s*/u', ' ', $text) ?? $text;
+            $text = str_replace(self::CITATION_CLOSE_ARTIFACT, '', $text);
+        }
+
+        $text = preg_replace(self::DISPLAY_ONLY_STRIP_PATTERN, '', $text) ?? $text;
+
         return preg_replace(self::FONT_ARTIFACT_PATTERN, '', $text) ?? $text;
     }
 
