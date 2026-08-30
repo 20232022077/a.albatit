@@ -223,6 +223,12 @@ php artisan event:cache
 * * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
 ```
 
+⚠️ **على استضافات LiteSpeed/cPanel تحديدًا**: تأكد أن أمر `php` في الـ Cron يشغّل PHP بوضع **CLI** فعليًا، لا وضع CGI/FastCGI — بعض الحسابات يكون فيها `php` الموجود ضمن PATH إصدار CGI (يطبع ترويسات HTTP بدل تنفيذ الأمر). إن حدث هذا، استخدم مسار `lsphp` الصريح بدلًا من `php`:
+```
+* * * * * cd /path-to-project && /usr/local/bin/lsphp artisan schedule:run >> /dev/null 2>&1
+```
+كذلك، بعض خطط الاستضافة المشتركة تعيد توزيع توقيت الـ Cron تلقائيًا لتوزيع الحمل (فتحوّل مثلًا `* * * * *` إلى `8-59/15 * * * *`) — لهذا السبب بالتحديد تعتمد جدولة النسخة الاحتياطية في `routes/console.php` على `everyMinute()` مع شرط `when()` بدل `daily()->at('03:00')` الحساسة لدقيقة محددة.
+
 ---
 
 ## 13. إنشاء Administrator بأمان
