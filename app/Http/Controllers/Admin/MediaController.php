@@ -98,6 +98,11 @@ class MediaController extends Controller
     public function destroy(Media $media): RedirectResponse
     {
         $this->authorize('permission', 'content.delete');
+
+        if ($media->isReferenced()) {
+            return back()->with('error', 'لا يمكن نقل هذا الملف إلى المحذوفات لأنه لا يزال مستخدمًا في محتوى آخر (غلاف كتاب، أو صورة السيرة الذاتية، أو صورة تصنيف مثلًا).');
+        }
+
         $media->delete();
         $this->record('media.deleted', $media);
 
@@ -119,7 +124,7 @@ class MediaController extends Controller
         $this->authorize('permission', 'content.delete');
         $media = Media::onlyTrashed()->findOrFail($id);
 
-        if ($media->contentItems()->exists()) {
+        if ($media->isReferenced()) {
             return back()->with('error', 'لا يمكن حذف هذه الصورة نهائيًا لأنها مستخدمة في محتوى آخر.');
         }
 

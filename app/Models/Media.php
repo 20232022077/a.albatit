@@ -94,6 +94,26 @@ class Media extends Model
         return $this->belongsToMany(ContentItem::class, 'content_media')->withPivot('collection', 'alt_text', 'sort_order')->withTimestamps();
     }
 
+    /**
+     * Whether this file is still in use anywhere, beyond the content_media
+     * pivot table that contentItems() alone covers. Book covers/PDFs,
+     * biography profile photos, and category images are all plain
+     * belongsTo columns (cover_media_id, pdf_media_id, profile_media_id,
+     * image_media_id) — not pivot rows — so a check that only looked at
+     * contentItems() would happily let one of those be deleted while it's
+     * still the live file a public page renders. (lectures/program_episodes'
+     * own *_media_id columns and the quran_items table are intentionally
+     * excluded: unused dead columns with no Eloquent relation anywhere in
+     * the app — nothing ever writes or reads them.)
+     */
+    public function isReferenced(): bool
+    {
+        return $this->contentItems()->exists()
+            || Book::where('cover_media_id', $this->id)->orWhere('pdf_media_id', $this->id)->exists()
+            || Biography::where('profile_media_id', $this->id)->exists()
+            || Category::where('image_media_id', $this->id)->exists();
+    }
+
     public function scopeSearch(Builder $query, string $term): Builder
     {
         return $query->where(function (Builder $q) use ($term) {
