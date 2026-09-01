@@ -7,9 +7,12 @@
     needs literal class strings in the source, so the accent is resolved
     to a full, hardcoded class string here rather than interpolated.
 
-    Expects: $title, $icon (raw svg path/shape markup, optional), $accent
-    ('emerald'|'amber'|'slate', optional, default 'emerald'), $action
-    (optional ['label' => ..., 'url' => ...] "view all" link).
+    Expects: $title, $icon (raw HTML, optional — a full "<svg>...</svg>" tag
+    or a plain glyph like "✦"/"۞", exactly like page-hero's own $heroIcon, so
+    a section's home-page badge can share the identical icon markup its own
+    page-hero uses instead of drifting into a second, slightly different
+    icon), $accent ('emerald'|'amber'|'slate', optional, default 'emerald'),
+    $action (optional ['label' => ..., 'url' => ...] "view all" link).
 --}}
 @php
     $accentClasses = match($accent ?? 'emerald') {
@@ -21,8 +24,8 @@
 <div class="flex flex-wrap items-center justify-between gap-4">
     <div class="flex items-center gap-3.5">
         @if($icon ?? null)
-            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl {{ $accentClasses['badge'] }} [&_svg]:h-5 [&_svg]:w-5">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{!! $icon !!}</svg>
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl {{ $accentClasses['badge'] }} [&_svg]:h-5 [&_svg]:w-5 text-xl">
+                {!! $icon !!}
             </span>
         @endif
         <div>

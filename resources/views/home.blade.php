@@ -11,14 +11,6 @@
         'wall_post' => '<path d="M4.5 5.5h15v10h-9L6 20v-4.5h-1.5v-10Z"/>',
         'default' => '<path d="M12 3l2.6 6.2L21 10l-5 4.5 1.3 6.5L12 17.8 6.7 21l1.3-6.5-5-4.5 6.4-.8L12 3z"/>',
     ];
-    // Quraniyat's devotional watermark (arch/mihrab) and quran-centrality's
-    // compass ("everything orbits the Qur'an"), kept as thin stroke
-    // line-art to match every other icon already in the codebase.
-    $sectionIcons = [
-        'quraniyat' => '<path d="M6 20.5V10.8a6 6 0 0 1 12 0v9.7"/><path d="M4.5 20.5h15"/>',
-        'quran-centrality' => '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="1.6"/><path d="M12 4v2.4M12 17.6V20M4 12h2.4M17.6 12H20"/>',
-        'programs' => '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9.5h8M8 13h8M8 16.5h5"/>',
-    ];
     $title = config('app.name');
     $canonicalUrl = route('home');
 @endphp
@@ -91,7 +83,7 @@
         <div class="mx-auto max-w-7xl px-5 py-16 lg:px-8">
             @include('partials.section-heading', [
                 'title' => 'مركزية القرآن',
-                'icon' => $sectionIcons['quran-centrality'],
+                'icon' => '۞',
                 'accent' => 'slate',
                 'action' => ['label' => 'كل المحتوى', 'url' => route('quran-centrality.index')],
             ])
@@ -133,7 +125,7 @@
         <div class="mx-auto max-w-7xl px-5 py-16 lg:px-8">
             @include('partials.section-heading', [
                 'title' => 'قرآنيات',
-                'icon' => $sectionIcons['quraniyat'],
+                'icon' => '✦',
                 'accent' => 'amber',
                 'action' => ['label' => 'كل القرآنيات', 'url' => route('quraniyat.index')],
             ])
@@ -178,7 +170,7 @@
         <div class="mx-auto max-w-7xl px-5 py-16 lg:px-8">
             @include('partials.section-heading', [
                 'title' => 'حائط',
-                'icon' => $typeIcons['wall_post'],
+                'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'.$typeIcons['wall_post'].'</svg>',
                 'action' => ['label' => 'كل المنشورات', 'url' => route('wall.index')],
             ])
 
@@ -219,7 +211,7 @@
         <div class="mx-auto max-w-7xl px-5 py-16 lg:px-8">
             @include('partials.section-heading', [
                 'title' => 'تأملات',
-                'icon' => $typeIcons['reflection'],
+                'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'.$typeIcons['reflection'].'</svg>',
                 'accent' => 'amber',
                 'action' => ['label' => 'كل التأملات', 'url' => route('reflections.index')],
             ])
@@ -265,7 +257,7 @@
     <section class="mx-auto max-w-7xl px-5 py-16 lg:px-8">
         @include('partials.section-heading', [
             'title' => 'الكتب',
-            'icon' => $typeIcons['book'],
+            'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'.$typeIcons['book'].'</svg>',
             'accent' => 'amber',
             'action' => ['label' => 'عرض كل الكتب', 'url' => route('books.index')],
         ])
@@ -319,7 +311,7 @@
         <div class="mx-auto max-w-7xl px-5 py-16 lg:px-8">
             @include('partials.section-heading', [
                 'title' => 'البرامج',
-                'icon' => $sectionIcons['programs'],
+                'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5v-7z"/></svg>',
                 'accent' => 'slate',
                 'action' => ['label' => 'كل البرامج', 'url' => route('programs.index')],
             ])
@@ -366,7 +358,7 @@
         <div class="mx-auto max-w-7xl px-5 py-16 lg:px-8">
             @include('partials.section-heading', [
                 'title' => 'المحاضرات',
-                'icon' => $typeIcons['lecture'],
+                'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'.$typeIcons['lecture'].'</svg>',
                 'action' => ['label' => 'كل المحاضرات', 'url' => route('lectures.index')],
             ])
 
