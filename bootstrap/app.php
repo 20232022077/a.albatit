@@ -3,6 +3,7 @@
 use App\Http\Middleware\ApplyContentSecurityPolicy;
 use App\Http\Middleware\ApplySecurityHeaders;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\RedirectWwwToApex;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->web(prepend: [
+            RedirectWwwToApex::class,
+        ]);
         $middleware->web(append: [
             ApplyContentSecurityPolicy::class,
             ApplySecurityHeaders::class,
