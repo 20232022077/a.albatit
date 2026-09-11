@@ -33,6 +33,22 @@ class QuranTextHighlighterTest extends TestCase
         $this->assertStringContainsString('(القَصَص: ٤)', $out);
     }
 
+    public function test_a_verse_number_typed_as_this_fonts_own_digit_ligature_is_recovered(): void
+    {
+        // Real production regression: this font's Qur'an-typing shortcut
+        // renders verse numbers as its own private digit ligatures
+        // (U+FD50-FD59) rather than real Arabic-Indic digits — left alone,
+        // FONT_ARTIFACT_PATTERN deletes them as decorative noise like
+        // everything else in that range, so the citation showed only the
+        // surah name with no number at all. stripFontArtifacts() runs
+        // ahead of highlight() here the same way rich-text.blade.php
+        // (the real call site) always runs it before highlighting.
+        $raw = "\u{FD5F}ٱقۡرَأۡ\u{FD5E} \u{FD5D}العَلَق : \u{FD51}\u{FD5C}";
+        $out = $this->render(QuranTextHighlighter::stripFontArtifacts($raw));
+
+        $this->assertStringContainsString('(العَلَق: ١)', $out);
+    }
+
     public function test_a_narrative_word_before_a_colon_is_never_treated_as_a_fake_citation(): void
     {
         // Real production regression: "قال:" (an ordinary "he said:" right
@@ -311,14 +327,17 @@ class QuranTextHighlighterTest extends TestCase
 
     public function test_strip_font_artifacts_removes_words_fonts_fake_bracket_ligatures(): void
     {
-        // The exact three characters a real admin reported seeing after
-        // pasting a verse "bracketed" using Word's KFGQPC HAFS Uthmanic
-        // Script font: U+FD51/FD53/FD54, standard Unicode ligature
-        // characters for unrelated letter combinations (teh-hah-jeem,
-        // teh-hah-meem, teh-khah-meem) that this specific font's glyph
-        // table repurposes to *draw* like a bracket -- meaningless, garbled
-        // text in any other font, this site's included.
-        $fakeBracket = "\u{FD51}\u{FD53}\u{FD54}";
+        // Three characters in the same font-artifact range a real admin
+        // reported seeing after pasting a verse "bracketed" using Word's
+        // KFGQPC HAFS Uthmanic Script font -- standard Unicode ligature
+        // characters for unrelated letter combinations that this specific
+        // font's glyph table repurposes to *draw* like a bracket --
+        // meaningless, garbled text in any other font, this site's
+        // included. Deliberately outside U+FD50-FD59 (this same font's
+        // own digit ligatures, converted rather than stripped -- see
+        // stripFontArtifacts()), so this stays a genuine "no real meaning"
+        // example rather than colliding with a real one.
+        $fakeBracket = "\u{FD60}\u{FD61}\u{FD62}";
 
         $cleaned = QuranTextHighlighter::stripFontArtifacts("{$fakeBracket}إِنَّ فِرۡعَوۡنَ{$fakeBracket}");
 
@@ -346,14 +365,14 @@ class QuranTextHighlighterTest extends TestCase
 
     public function test_a_verse_pasted_with_fake_font_bracket_ligatures_is_still_detected_and_wrapped_correctly(): void
     {
-        $fakeBracket = "\u{FD51}\u{FD53}\u{FD54}";
+        $fakeBracket = "\u{FD60}\u{FD61}\u{FD62}";
         $raw = "قبل الآية.\n{$fakeBracket}إِنَّ فِرۡعَوۡنَ عَلَا فِي ٱلۡأَرۡضِ{$fakeBracket} ٤ القصص :";
 
         $out = QuranTextHighlighter::highlightExcerpt($raw, 200, 'slate');
 
         $this->assertStringContainsString('﴿إِنَّ فِرۡعَوۡنَ عَلَا فِي ٱلۡأَرۡضِ﴾', $out);
         $this->assertStringContainsString('(القصص: ٤)', $out);
-        $this->assertStringNotContainsString("\u{FD51}", $out);
+        $this->assertStringNotContainsString("\u{FD60}", $out);
     }
 
     public function test_this_fonts_own_verse_bracket_ligatures_are_trusted_verbatim_even_with_no_markers(): void
@@ -429,14 +448,17 @@ class QuranTextHighlighterTest extends TestCase
         // ligature ("...بِٱلۡمَعۡرُوفِۚ" immediately followed by the citation
         // marker) — simply deleting both fused the surah name onto the
         // verse's own last word into one unsplittable token, dropping the
-        // citation and pulling "البقرة" itself inside the bracket.
+        // citation and pulling "البقرة" itself inside the bracket. The
+        // trailing \u{FD58}\u{FD52} is this same font's own digit
+        // ligatures for "٨٢" (see DIGIT_LIGATURE_FIRST) — recovered to a
+        // real number now rather than discarded as decorative noise.
         $raw = 'فقالها القرآن صراحةً: '
-            ."\u{FD5F}وَلَهُنَّ مِثۡلُ ٱلَّذِي عَلَيۡهِنَّ بِٱلۡمَعۡرُوفِۚ\u{FD5E}\u{FD5D}البَقَرَةِ : \u{FD58}\u{FD52}\u{FD52}\u{FD5C}";
+            ."\u{FD5F}وَلَهُنَّ مِثۡلُ ٱلَّذِي عَلَيۡهِنَّ بِٱلۡمَعۡرُوفِۚ\u{FD5E}\u{FD5D}البَقَرَةِ : \u{FD58}\u{FD52}\u{FD5C}";
 
         $out = QuranTextHighlighter::highlightExcerpt($raw, 200, 'slate');
 
         $this->assertStringContainsString('﴿وَلَهُنَّ مِثۡلُ ٱلَّذِي عَلَيۡهِنَّ بِٱلۡمَعۡرُوفِۚ﴾', $out);
-        $this->assertStringContainsString('(البَقَرَةِ)', $out);
+        $this->assertStringContainsString('(البَقَرَةِ: ٨٢)', $out);
         $this->assertStringNotContainsString('البَقَرَةِ﴾', $out);
     }
 

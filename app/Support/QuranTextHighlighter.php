@@ -132,8 +132,18 @@ class QuranTextHighlighter
      *  dropped entirely, leaving an orphaned madda floating right before
      *  "ل" — deliberately narrowed to that one exact mark (not any \p{Mn})
      *  so it can't also swallow an unrelated word that merely ends in some
-     *  other diacritic immediately before an unrelated "ل". */
-    private const CITATION_PATTERN = '/(?:([٠-٩]+)\s*)?((?:آ|ا\p{Mn}+|\x{0653})ل\s+(?:(?!\p{Nd})\p{Arabic})+|(?:(?!\p{Nd})\p{Arabic})+)\s*:/u';
+     *  other diacritic immediately before an unrelated "ل".
+     *
+     *  A third trailing group (3) captures a number written AFTER the
+     *  colon instead — "العَلَق: ١" — the order this font's own citation
+     *  ligatures (CITATION_OPEN/CLOSE_ARTIFACT above) produce once their
+     *  digit ligatures are recovered to real Arabic-Indic digits, already
+     *  in the exact "سورة: رقم" order formatCitation() renders everything
+     *  else into. Both number groups are optional and mutually exclusive
+     *  in practice (a real citation has the number on one side of the
+     *  colon or the other, never both) — callers combine them with
+     *  "group 1 if set, else group 3". */
+    private const CITATION_PATTERN = '/(?:([٠-٩]+)\s*)?((?:آ|ا\p{Mn}+|\x{0653})ل\s+(?:(?!\p{Nd})\p{Arabic})+|(?:(?!\p{Nd})\p{Arabic})+)\s*:\s*(?:([٠-٩]+))?/u';
 
     /** Consecutive marked words separated by at most this many unmarked
      *  words are treated as the same verse run. */
@@ -234,6 +244,22 @@ class QuranTextHighlighter
     private const CITATION_OPEN_ARTIFACT = "\u{FD5D}";
 
     private const CITATION_CLOSE_ARTIFACT = "\u{FD5C}";
+
+    /** This same font's own digit ligatures — verse numbers inside a
+     *  citation (e.g. "العَلَق: ١") aren't typed as real Arabic-Indic
+     *  digits at all when using this font's Qur'an-typing shortcuts; each
+     *  digit 0-9 is its own private glyph in this same ligature range,
+     *  U+FD50 ("٠") through U+FD59 ("٩") — confirmed by rendering every
+     *  glyph in the font and comparing shapes one-by-one against the real
+     *  digits. Left alone, FONT_ARTIFACT_PATTERN below deletes them as
+     *  decorative noise like everything else in this range, which is
+     *  exactly why a citation's verse number was vanishing while the
+     *  surah name (ordinary Arabic letters, untouched by that pattern)
+     *  kept showing — CITATION_PATTERN's number group had nothing left to
+     *  capture. Converted to real digits in stripFontArtifacts() before
+     *  that generic strip runs, the same way the bracket ligatures above
+     *  are converted rather than discarded. */
+    private const DIGIT_LIGATURE_FIRST = 0xFD50;
 
     /** ARABIC SMALL LOW MEEM — a genuine, if rare, Uthmani recitation
      *  annotation mark, but one this site's Qur'an webfont has no dedicated
@@ -412,6 +438,12 @@ class QuranTextHighlighter
             $text = str_replace(self::CITATION_CLOSE_ARTIFACT, '', $text);
         }
 
+        $text = preg_replace_callback('/[\x{FD50}-\x{FD59}]/u', function (array $match): string {
+            $codepoint = mb_ord($match[0], 'UTF-8');
+
+            return mb_chr(0x0660 + ($codepoint - self::DIGIT_LIGATURE_FIRST), 'UTF-8');
+        }, $text) ?? $text;
+
         $text = preg_replace(self::DISPLAY_ONLY_STRIP_PATTERN, '', $text) ?? $text;
 
         return preg_replace(self::FONT_ARTIFACT_PATTERN, '', $text) ?? $text;
@@ -488,7 +520,8 @@ class QuranTextHighlighter
             $leadingWs = substr($rest, 0, strlen($rest) - strlen($trimmedRest));
             if (preg_match(self::CITATION_PATTERN, $trimmedRest, $citeMatch, PREG_OFFSET_CAPTURE) === 1
                 && $citeMatch[0][1] === 0) {
-                $out .= self::formatCitation($citeMatch[1][0], $citeMatch[2][0]);
+                $number = $citeMatch[1][0] !== '' ? $citeMatch[1][0] : ($citeMatch[3][0] ?? '');
+                $out .= self::formatCitation($number, $citeMatch[2][0]);
                 $cursor += strlen($leadingWs) + strlen($citeMatch[0][0]);
             }
         }
@@ -538,7 +571,8 @@ class QuranTextHighlighter
             // before "١٨ هود:" in the source) would otherwise double up
             // with formatCitation()'s own leading space.
             $out .= rtrim($runOutput);
-            $out .= self::formatCitation($matches[1][$i][0], $matches[2][$i][0]);
+            $number = $matches[1][$i][0] !== '' ? $matches[1][$i][0] : ($matches[3][$i][0] ?? '');
+            $out .= self::formatCitation($number, $matches[2][$i][0]);
             $cursor = $citationStart + strlen($citation);
         }
         $out .= self::runHighlight(substr($text, $cursor), $accent, false);
