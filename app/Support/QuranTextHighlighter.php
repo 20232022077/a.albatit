@@ -258,7 +258,15 @@ class QuranTextHighlighter
      *  kept showing — CITATION_PATTERN's number group had nothing left to
      *  capture. Converted to real digits in stripFontArtifacts() before
      *  that generic strip runs, the same way the bracket ligatures above
-     *  are converted rather than discarded. */
+     *  are converted rather than discarded.
+     *
+     *  A multi-digit verse number is typed with this font's own shortcut
+     *  least-significant-digit-first — confirmed against real production
+     *  content by matching the quoted wording to its actual verse: a
+     *  citation's literal ligature order "٠" then "٤" is Yusuf 12:40, not
+     *  "04"/4; "٣" then "٤" is Al-Furqan 25:43, not "34"; "٠" then "٣" is
+     *  Ar-Rum 30:30, not "03". Reversed back to reading order in
+     *  stripFontArtifacts() before the digits are converted. */
     private const DIGIT_LIGATURE_FIRST = 0xFD50;
 
     /** ARABIC SMALL LOW MEEM — a genuine, if rare, Uthmani recitation
@@ -438,10 +446,13 @@ class QuranTextHighlighter
             $text = str_replace(self::CITATION_CLOSE_ARTIFACT, '', $text);
         }
 
-        $text = preg_replace_callback('/[\x{FD50}-\x{FD59}]/u', function (array $match): string {
-            $codepoint = mb_ord($match[0], 'UTF-8');
+        $text = preg_replace_callback('/[\x{FD50}-\x{FD59}]+/u', function (array $match): string {
+            $digits = mb_str_split($match[0], 1, 'UTF-8');
 
-            return mb_chr(0x0660 + ($codepoint - self::DIGIT_LIGATURE_FIRST), 'UTF-8');
+            return implode('', array_map(
+                fn (string $char) => mb_chr(0x0660 + (mb_ord($char, 'UTF-8') - self::DIGIT_LIGATURE_FIRST), 'UTF-8'),
+                array_reverse($digits)
+            ));
         }, $text) ?? $text;
 
         $text = preg_replace(self::DISPLAY_ONLY_STRIP_PATTERN, '', $text) ?? $text;

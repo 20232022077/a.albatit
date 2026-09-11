@@ -49,6 +49,20 @@ class QuranTextHighlighterTest extends TestCase
         $this->assertStringContainsString('(العَلَق: ١)', $out);
     }
 
+    public function test_a_multi_digit_verse_number_typed_as_font_ligatures_is_reversed_to_reading_order(): void
+    {
+        // Real production regression: this font's own shortcut types a
+        // multi-digit verse number least-significant-digit-first — a
+        // citation's literal ligature order "٠" then "٤" is Yusuf 12:40
+        // (confirmed by matching the actual quoted wording to the real
+        // verse), not "04"/"4". Left unreversed, every two-digit-or-more
+        // citation on the live site showed a scrambled number.
+        $raw = "\u{FD5F}أَمَرَ أَلَّا تَعۡبُدُوٓاْ إِلَّآ إِيَّاهُ\u{FD5E} \u{FD5D}يُوسُف : \u{FD50}\u{FD54}\u{FD5C}";
+        $out = $this->render(QuranTextHighlighter::stripFontArtifacts($raw));
+
+        $this->assertStringContainsString('(يُوسُف: ٤٠)', $out);
+    }
+
     public function test_a_narrative_word_before_a_colon_is_never_treated_as_a_fake_citation(): void
     {
         // Real production regression: "قال:" (an ordinary "he said:" right
@@ -450,15 +464,17 @@ class QuranTextHighlighterTest extends TestCase
         // verse's own last word into one unsplittable token, dropping the
         // citation and pulling "البقرة" itself inside the bracket. The
         // trailing \u{FD58}\u{FD52} is this same font's own digit
-        // ligatures for "٨٢" (see DIGIT_LIGATURE_FIRST) — recovered to a
-        // real number now rather than discarded as decorative noise.
+        // ligatures, typed least-significant-digit-first (see
+        // DIGIT_LIGATURE_FIRST) — "8" then "2" is "٢٨", not "٨٢" —
+        // recovered to a real number now rather than discarded as
+        // decorative noise.
         $raw = 'فقالها القرآن صراحةً: '
             ."\u{FD5F}وَلَهُنَّ مِثۡلُ ٱلَّذِي عَلَيۡهِنَّ بِٱلۡمَعۡرُوفِۚ\u{FD5E}\u{FD5D}البَقَرَةِ : \u{FD58}\u{FD52}\u{FD5C}";
 
         $out = QuranTextHighlighter::highlightExcerpt($raw, 200, 'slate');
 
         $this->assertStringContainsString('﴿وَلَهُنَّ مِثۡلُ ٱلَّذِي عَلَيۡهِنَّ بِٱلۡمَعۡرُوفِۚ﴾', $out);
-        $this->assertStringContainsString('(البَقَرَةِ: ٨٢)', $out);
+        $this->assertStringContainsString('(البَقَرَةِ: ٢٨)', $out);
         $this->assertStringNotContainsString('البَقَرَةِ﴾', $out);
     }
 
