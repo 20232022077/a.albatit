@@ -29,8 +29,20 @@
  * progression instead of Tailwind's stock palette.
  */
 @theme {
-    --font-sans: 'Tajawal', 'Noto Kufi Arabic', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    --font-sans: 'GE SS Two', 'Tajawal', 'Noto Kufi Arabic', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /*
+     * GE SS Two only has three real cuts (300/500/700) — no 400 "normal"
+     * and no 800 "extrabold". Left alone, the browser's own weight-
+     * matching guesses a substitute for every `font-normal`/
+     * `font-extrabold` class already used site-wide; naming the real
+     * cuts explicitly here means every one of those ~60 view files reads
+     * exactly the weight this font actually ships, without editing any
+     * of them.
+     */
+    --font-weight-normal: 300;
+    --font-weight-extrabold: 700;
 
     /* ---- Semantic aliases (new, additive — safe to adopt gradually) ---- */
     --color-primary: #0B5D4B;
@@ -128,6 +140,17 @@
     --default-transition-timing-function: ease;
 }
 
+/*
+ * Explicit reading weight for body copy — paragraphs and other unstyled
+ * text carry no weight class of their own, so without this they'd fall
+ * back to whatever weight the browser guesses is closest to a "normal"
+ * that GE SS Two doesn't actually have. Headings/badges/labels keep
+ * using their own existing font-bold/font-extrabold classes untouched.
+ */
+body {
+    font-weight: 300;
+}
+
 /* The brand's signature diagonal gradient, for surfaces where a lighter
    endpoint is fine (small accents/CTA-scale elements, not large text-bearing
    sections — see bg-brand-gradient-deep below for those). */
@@ -154,6 +177,38 @@
 @utility bg-dot-grid-26 {
     background-image: radial-gradient(circle, #fff 1px, transparent 1px);
     background-size: 26px 26px;
+}
+
+/*
+ * Trial UI typeface (GE SS Two) — provided directly by the site owner
+ * (not downloaded from a font-redistribution site), so licensing is on
+ * them rather than something to verify here. Only three cuts exist
+ * locally (Light/Medium/Bold — no Regular), registered at their usual
+ * numeric weights. Does not touch 'Uthmanic Hafs'/.quran-verse below,
+ * which must keep rendering actual Qur'an text untouched.
+ */
+@font-face {
+    font-family: 'GE SS Two';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('/fonts/GESSTwo-Light.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'GE SS Two';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/GESSTwo-Medium.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'GE SS Two';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/GESSTwo-Bold.otf') format('opentype');
 }
 
 /*
