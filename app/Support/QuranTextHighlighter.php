@@ -142,8 +142,14 @@ class QuranTextHighlighter
      *  else into. Both number groups are optional and mutually exclusive
      *  in practice (a real citation has the number on one side of the
      *  colon or the other, never both) — callers combine them with
-     *  "group 1 if set, else group 3". */
-    private const CITATION_PATTERN = '/(?:([٠-٩]+)\s*)?((?:آ|ا\p{Mn}+|\x{0653})ل\s+(?:(?!\p{Nd})\p{Arabic})+|(?:(?!\p{Nd})\p{Arabic})+)\s*:\s*(?:([٠-٩]+))?/u';
+     *  "group 1 if set, else group 3".
+     *
+     *  A trailing "-٧٩"-style range end (e.g. "المَائـِدَة: ٧٨-٧٩", quoting
+     *  verses 78 through 79) is matched but not captured — by admin
+     *  request only the first verse number displays, so the range end is
+     *  consumed purely to keep it from being left behind as stray text
+     *  right after the citation's closing parenthesis. */
+    private const CITATION_PATTERN = '/(?:([٠-٩]+)\s*)?((?:آ|ا\p{Mn}+|\x{0653})ل\s+(?:(?!\p{Nd})\p{Arabic})+|(?:(?!\p{Nd})\p{Arabic})+)\s*:\s*(?:([٠-٩]+))?(?:\s*-\s*[٠-٩]+)?/u';
 
     /** Consecutive marked words separated by at most this many unmarked
      *  words are treated as the same verse run. */

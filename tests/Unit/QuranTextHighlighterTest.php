@@ -63,6 +63,19 @@ class QuranTextHighlighterTest extends TestCase
         $this->assertStringContainsString('(يُوسُف: ٤٠)', $out);
     }
 
+    public function test_a_verse_range_citation_does_not_leak_its_end_number_outside_the_bracket(): void
+    {
+        // Real production regression: "المَائـِدَة: ٧٨-٧٩" (verses 78 through
+        // 79) only captured the first number, leaving "-٧٩" sitting as
+        // stray plain text right after the citation's closing parenthesis.
+        // By admin request only the first verse number should display.
+        $raw = "\u{FD5F}لَعۡنُواْ عَلَىٰ لِسَانِ دَاوُۥدَ\u{FD5E} \u{FD5D}المَائـِدَة : \u{FD58}\u{FD57}\u{FD5C}-٧٩.";
+        $out = $this->render(QuranTextHighlighter::stripFontArtifacts($raw));
+
+        $this->assertStringContainsString('(المَائـِدَة: ٧٨)', $out);
+        $this->assertStringNotContainsString('٧٩', $out);
+    }
+
     public function test_a_narrative_word_before_a_colon_is_never_treated_as_a_fake_citation(): void
     {
         // Real production regression: "قال:" (an ordinary "he said:" right
